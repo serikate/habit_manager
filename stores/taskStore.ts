@@ -1,7 +1,12 @@
 import { create } from 'zustand'
 import { createClient } from '@/lib/supabase'
-import type { DailyTask, TaskExecution, CreateTaskData, OneTimeTask, CreateOneTimeTaskData } from '@/types'
+import type { DailyTask, TaskExecution, CreateTaskData, OneTimeTask, CreateOneTimeTaskData, EditExecutionData } from '@/types'
 import { addExperience, shouldLevelUp } from '@/utils/levelSystem'
+import {
+  calculateDuration,
+  calculateAchievementRate,
+  validateExecutionTime
+} from '@/utils/timeCalculator'
 import { format } from 'date-fns'
 
 interface TaskState {
@@ -17,8 +22,9 @@ interface TaskState {
   createTask: (data: CreateTaskData) => Promise<DailyTask | null>
   updateTask: (id: string, updates: Partial<DailyTask>) => Promise<boolean>
   deleteTask: (id: string) => Promise<boolean>
-  completeTask: (taskId: string, actualDuration: number) => Promise<boolean>
+  completeTask: (taskId: string) => Promise<boolean>  // 🆕 引数を削除
   startTask: (id: string) => Promise<boolean>
+  editExecution: (executionId: string, data: EditExecutionData) => Promise<boolean>  // 🆕 追加
 
   // One-Time Task Actions
   fetchOneTimeTasks: () => Promise<void>
@@ -74,7 +80,8 @@ export const useTaskStore = create<TaskState>((set, get) => ({
           habit:habits(
             *,
             category:categories(*)
-          )
+          ),
+          executions:task_executions(*)
         `)
         .eq('date', today)
         .order('created_at', { ascending: false })
@@ -186,10 +193,41 @@ export const useTaskStore = create<TaskState>((set, get) => ({
   },
 
   startTask: async (id: string) => {
-    return await get().updateTask(id, { status: 'in_progress' })
+    const supabase = createClient()
+    set({ loading: true, error: null })
+
+    try {
+      const now = new Date().toISOString()
+
+      const { error } = await supabase
+        .from('daily_tasks')
+        .update({
+          status: 'in_progress',
+          started_at: now  // 🆕 開始時刻を記録
+        })
+        .eq('id', id)
+
+      if (error) throw error
+
+      // ローカル状態を更新
+      set(state => ({
+        tasks: state.tasks.map(t =>
+          t.id === id ? { ...t, status: 'in_progress', started_at: now } : t
+        ),
+        todayTasks: state.todayTasks.map(t =>
+          t.id === id ? { ...t, status: 'in_progress', started_at: now } : t
+        ),
+        loading: false
+      }))
+
+      return true
+    } catch (error: any) {
+      set({ error: error.message, loading: false })
+      return false
+    }
   },
 
-  completeTask: async (taskId: string, actualDuration: number) => {
+  completeTask: async (taskId: string) => {  // 🆕 引数を削除
     const supabase = createClient()
     set({ loading: true, error: null })
 
@@ -198,15 +236,26 @@ export const useTaskStore = create<TaskState>((set, get) => ({
                    get().todayTasks.find(t => t.id === taskId)
 
       if (!task) throw new Error('タスクが見つかりません')
+      if (!task.started_at) throw new Error('開始時刻が記録されていません')
+
+      const completedAt = new Date().toISOString()
+
+      // 🆕 実際の所要時間を計算
+      const actualDuration = calculateDuration(task.started_at, completedAt)
 
       // 達成率を計算
-      const achievementRate = Math.min((actualDuration / task.estimated_duration) * 100, 150)
+      const achievementRate = calculateAchievementRate(
+        actualDuration,
+        task.estimated_duration
+      )
 
       // タスク実行履歴を記録
       const { error: executionError } = await supabase
         .from('task_executions')
         .insert({
           task_id: taskId,
+          started_at: task.started_at,  // 🆕 開始時刻も記録
+          completed_at: completedAt,
           actual_duration: actualDuration,
           achievement_rate: achievementRate,
         })
@@ -367,6 +416,88 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     } catch (error: any) {
       set({ error: error.message, loading: false })
       return false
+    }
+  },
+
+  // 🆕 タスク実行時間の編集
+  editExecution: async (executionId: string, data: EditExecutionData) => {
+    const supabase = createClient()
+    set({ loading: true, error: null })
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('認証が必要です')
+
+      // バリデーション
+      validateExecutionTime(data.started_at, data.completed_at)
+
+      // 既存データを取得（編集履歴用）
+      const { data: oldExecution, error: fetchError } = await supabase
+        .from('task_executions')
+        .select('*')
+        .eq('id', executionId)
+        .single()
+
+      if (fetchError) throw fetchError
+      if (!oldExecution) throw new Error('実行履歴が見つかりません')
+
+      // 新しい所要時間と達成率を計算
+      const newActualDuration = calculateDuration(
+        data.started_at,
+        data.completed_at
+      )
+
+      // タスク情報を取得（estimated_durationが必要）
+      const { data: task, error: taskError } = await supabase
+        .from('daily_tasks')
+        .select('estimated_duration')
+        .eq('id', oldExecution.task_id)
+        .single()
+
+      if (taskError) throw taskError
+
+      const newAchievementRate = calculateAchievementRate(
+        newActualDuration,
+        task.estimated_duration
+      )
+
+      // 編集履歴を記録
+      const { error: historyError } = await supabase
+        .from('task_execution_edits')
+        .insert({
+          execution_id: executionId,
+          old_started_at: oldExecution.started_at,
+          old_completed_at: oldExecution.completed_at,
+          old_actual_duration: oldExecution.actual_duration,
+          old_achievement_rate: oldExecution.achievement_rate,
+          new_started_at: data.started_at,
+          new_completed_at: data.completed_at,
+          new_actual_duration: newActualDuration,
+          new_achievement_rate: newAchievementRate,
+          edited_by: user.id,
+          edit_reason: data.edit_reason || null,
+        })
+
+      if (historyError) throw historyError
+
+      // task_executions を更新
+      const { error: updateError } = await supabase
+        .from('task_executions')
+        .update({
+          started_at: data.started_at,
+          completed_at: data.completed_at,
+          actual_duration: newActualDuration,
+          achievement_rate: newAchievementRate,
+        })
+        .eq('id', executionId)
+
+      if (updateError) throw updateError
+
+      set({ loading: false })
+      return true
+    } catch (error: any) {
+      set({ error: error.message, loading: false })
+      throw error  // モーダル側でエラーメッセージを表示するため
     }
   },
 }))

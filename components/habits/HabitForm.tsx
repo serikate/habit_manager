@@ -5,43 +5,40 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useHabitStore } from '@/stores/habitStore'
-import { X } from 'lucide-react'
+import { X, Plus } from 'lucide-react'
 import type { CreateHabitData, WeeklySchedule } from '@/types'
 import HabitScheduleForm from './HabitScheduleForm'
+import CategoryForm from '../categories/CategoryForm'
 
 const habitSchema = z.object({
   name: z.string().min(1, '習慣名は必須です').max(100, '習慣名は100文字以内で入力してください'),
   category_id: z.string().nullable(),
   default_duration: z.number().min(5, '最低5分は必要です').max(480, '最大8時間まで設定可能です'),
-  schedule: z.object({
-    monday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-    tuesday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-    wednesday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-    thursday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-    friday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-    saturday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-    sunday: z.object({ enabled: z.boolean(), time: z.string().optional() }).optional(),
-  })
+  schedule: z.any()
 })
 
 interface HabitFormProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  initialData?: any
 }
 
-export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps) {
-  const { categories, loading, createHabit, fetchCategories } = useHabitStore()
+export default function HabitForm({ isOpen, onClose, onSuccess, initialData }: HabitFormProps) {
+  const { categories, loading, createHabit, updateHabit, fetchCategories } = useHabitStore()
   const [submitting, setSubmitting] = useState(false)
   const [currentSchedule, setCurrentSchedule] = useState<WeeklySchedule>({})
+  const [isCategoryFormOpen, setIsCategoryFormOpen] = useState(false)
+  const isEditMode = !!initialData
 
   const {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors },
   } = useForm<CreateHabitData>({
-    resolver: zodResolver(habitSchema),
+    resolver: zodResolver(habitSchema) as any,
     defaultValues: {
       name: '',
       category_id: null,
@@ -49,6 +46,16 @@ export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps
       schedule: {}
     },
   })
+
+  // 編集モードの場合、初期値を設定
+  useEffect(() => {
+    if (initialData && isOpen) {
+      setValue('name', initialData.name)
+      setValue('category_id', initialData.category_id || null)
+      setValue('default_duration', initialData.default_duration)
+      setCurrentSchedule(initialData.schedule || {})
+    }
+  }, [initialData, isOpen, setValue])
 
   useEffect(() => {
     if (isOpen && categories.length === 0) {
@@ -66,15 +73,30 @@ export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps
         return
       }
 
-      const result = await createHabit({
-        ...data,
-        schedule: currentSchedule
-      })
-      if (result) {
-        reset()
-        setCurrentSchedule({})
-        onSuccess?.()
-        onClose()
+      if (isEditMode) {
+        // 編集モード
+        const result = await updateHabit(initialData.id, {
+          ...data,
+          schedule: currentSchedule
+        })
+        if (result) {
+          reset()
+          setCurrentSchedule({})
+          onSuccess?.()
+          onClose()
+        }
+      } else {
+        // 新規作成モード
+        const result = await createHabit({
+          ...data,
+          schedule: currentSchedule
+        })
+        if (result) {
+          reset()
+          setCurrentSchedule({})
+          onSuccess?.()
+          onClose()
+        }
       }
     } finally {
       setSubmitting(false)
@@ -87,6 +109,10 @@ export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps
     onClose()
   }
 
+  const handleCategorySuccess = () => {
+    fetchCategories()
+  }
+
   if (!isOpen) return null
 
   return (
@@ -94,7 +120,9 @@ export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps
       <div className="fixed inset-0 bg-black bg-opacity-50" onClick={handleClose} />
       <div className="relative bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">新しい習慣を追加</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            {isEditMode ? '習慣を編集' : '新しい習慣を追加'}
+          </h2>
           <button
             onClick={handleClose}
             className="text-gray-400 hover:text-gray-600"
@@ -124,18 +152,28 @@ export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps
             <label htmlFor="category_id" className="block text-sm font-medium text-gray-700 mb-1">
               カテゴリ
             </label>
-            <select
-              id="category_id"
-              {...register('category_id')}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-            >
-              <option value="">カテゴリを選択</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+            <div className="flex space-x-2">
+              <select
+                id="category_id"
+                {...register('category_id')}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+              >
+                <option value="">カテゴリを選択</option>
+                {categories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={() => setIsCategoryFormOpen(true)}
+                className="px-3 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500"
+                title="新しいカテゴリを追加"
+              >
+                <Plus className="w-5 h-5" />
+              </button>
+            </div>
           </div>
 
           <div>
@@ -177,11 +215,18 @@ export default function HabitForm({ isOpen, onClose, onSuccess }: HabitFormProps
               disabled={submitting || loading}
               className="flex-1 px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:opacity-50"
             >
-              {submitting ? '作成中...' : '作成'}
+              {submitting ? (isEditMode ? '更新中...' : '作成中...') : (isEditMode ? '更新' : '作成')}
             </button>
           </div>
         </form>
       </div>
+
+      {/* カテゴリ追加モーダル */}
+      <CategoryForm
+        isOpen={isCategoryFormOpen}
+        onClose={() => setIsCategoryFormOpen(false)}
+        onSuccess={handleCategorySuccess}
+      />
     </div>
   )
 }

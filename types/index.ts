@@ -81,6 +81,8 @@ export interface DailyTask {
   // 🆕 自動生成フラグ
   auto_generated?: boolean
   scheduled_time?: string
+  started_at?: string  // 🆕 実際の開始日時
+  executions?: TaskExecution[]  // 🆕 実行履歴
 }
 
 // 🆕 単発タスク専用型
@@ -88,8 +90,10 @@ export interface OneTimeTask {
   id: string
   user_id: string
   title: string
+  description?: string
   estimated_duration: number
   importance: 1 | 2 | 3
+  urgency: number
   deadline: string
   category?: string
   status: 'pending' | 'in_progress' | 'completed' | 'skipped'
@@ -99,6 +103,7 @@ export interface OneTimeTask {
 export interface TaskExecution {
   id: string
   task_id: string
+  started_at: string  // 🆕 開始日時
   actual_duration: number
   achievement_rate: number
   completed_at: string
@@ -151,15 +156,17 @@ export interface CreateHabitData {
 export interface HabitScheduleForm {
   quickPattern: 'weekdays' | 'everyday' | 'weekends' | 'custom'
   quickTime: string
-  detailSchedule: WeeklySchedule
+  detailSchedule?: WeeklySchedule
   selectedPreset?: string
 }
 
 // 🆕 単発タスク作成用の型
 export interface CreateOneTimeTaskData {
   title: string
+  description?: string
   estimated_duration: number
   importance: 1 | 2 | 3
+  urgency?: number
   deadline: string
   category?: string
 }
@@ -172,4 +179,29 @@ export interface CreateTaskData {
   deadline: string | null
   is_recurring: boolean
   title?: string // 🆕 単発タスクの場合に使用
+}
+
+// 🆕 タスク実行時間編集履歴
+export interface TaskExecutionEdit {
+  id: string
+  execution_id: string
+  old_started_at: string
+  old_completed_at: string
+  old_actual_duration: number
+  old_achievement_rate: number
+  new_started_at: string
+  new_completed_at: string
+  new_actual_duration: number
+  new_achievement_rate: number
+  edited_by: string
+  edited_at: string
+  edit_reason?: string
+  created_at: string
+}
+
+// 🆕 実行時間編集用のフォームデータ
+export interface EditExecutionData {
+  started_at: string  // ISO 8601形式
+  completed_at: string  // ISO 8601形式
+  edit_reason?: string
 }

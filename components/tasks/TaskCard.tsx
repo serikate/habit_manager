@@ -25,7 +25,7 @@ export default function TaskCard({ task }: TaskCardProps) {
   const handleComplete = async () => {
     setExecuting(true)
     try {
-      const success = await completeTask(task.id, actualDuration)
+      const success = await completeTask(task.id)
       if (success) {
         setShowCompleteForm(false)
       }

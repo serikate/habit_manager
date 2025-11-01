@@ -4,25 +4,59 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import MainLayout from '@/components/layout/MainLayout'
 import TaskList from '@/components/tasks/TaskList'
+import FutureTasksPanel from '@/components/tasks/FutureTasksPanel'
 import LevelDisplay from '@/components/progress/LevelDisplay'
 import ProgressBar from '@/components/progress/ProgressBar'
 import { useTaskStore } from '@/stores/taskStore'
 import { useHabitStore } from '@/stores/habitStore'
 import { useStatisticsStore } from '@/stores/statisticsStore'
+import { useDailyTaskAutoGenerator } from '@/hooks/useDailyTaskAutoGenerator'
+import { useTaskDisplaySettings } from '@/hooks/useTaskDisplaySettings'
 import { calculateOverallLevel } from '@/utils/levelSystem'
-import { Plus, BarChart3, Target, Settings } from 'lucide-react'
-import { format } from 'date-fns'
+import { Plus, BarChart3, Target, Settings, Clock, X } from 'lucide-react'
+import { format, addDays, parseISO, startOfDay } from 'date-fns'
 
 export default function DashboardPage() {
-  const { todayTasks, fetchTodayTasks } = useTaskStore()
-  const { habits, fetchHabits } = useHabitStore()
+  // 自動タスク生成
+  const { notification, closeNotification } = useDailyTaskAutoGenerator()
+
+  // 表示日数設定
+  const { daysToShow, updateDaysToShow } = useTaskDisplaySettings()
+
+  const { todayTasks, oneTimeTasks, fetchTodayTasks, fetchOneTimeTasks } = useTaskStore()
+  const { habits, fetchHabits, generateHabitTasks } = useHabitStore()
   const { data: stats, fetchStatistics } = useStatisticsStore()
 
   useEffect(() => {
     fetchTodayTasks()
     fetchHabits()
     fetchStatistics(7) // 過去7日間の統計
-  }, [fetchTodayTasks, fetchHabits, fetchStatistics])
+    fetchOneTimeTasks()
+  }, [fetchTodayTasks, fetchHabits, fetchStatistics, fetchOneTimeTasks])
+
+  // 手動タスク生成（フォールバック）
+  const handleManualGenerate = async () => {
+    try {
+      const tasks = await generateHabitTasks('today')
+      await fetchTodayTasks()
+      console.log(`✅ 手動でタスクを${tasks.length}件生成しました`)
+    } catch (error) {
+      console.error('❌ 手動タスク生成エラー:', error)
+    }
+  }
+
+  // 単発タスクのフィルタリング
+  const today = startOfDay(new Date())
+  const maxDate = addDays(today, daysToShow)
+
+  // 明日〜設定日数後までの単発タスク
+  const futureOneTimeTasks = oneTimeTasks.filter((task) => {
+    if (task.status === 'completed') return false
+    if (!task.deadline) return false
+
+    const deadline = parseISO(task.deadline)
+    return deadline > today && deadline <= maxDate
+  })
 
   const overallLevel = calculateOverallLevel(habits)
   const todayProgress = {
@@ -34,6 +68,27 @@ export default function DashboardPage() {
   return (
     <MainLayout>
       <div className="space-y-6">
+        {/* 通知バナー */}
+        {notification && (
+          <div
+            className={`p-4 rounded-lg flex items-center justify-between ${
+              notification.type === 'success'
+                ? 'bg-green-50 text-green-800 border border-green-200'
+                : notification.type === 'error'
+                ? 'bg-red-50 text-red-800 border border-red-200'
+                : 'bg-blue-50 text-blue-800 border border-blue-200'
+            }`}
+          >
+            <span className="font-medium">{notification.message}</span>
+            <button
+              onClick={closeNotification}
+              className="p-1 hover:bg-white/50 rounded transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        )}
+
         <div>
           <h1 className="text-3xl font-bold text-gray-900">ダッシュボード</h1>
           <p className="mt-2 text-sm text-gray-700">
@@ -88,21 +143,29 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 今日のスケジュール */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <div className="bg-white shadow rounded-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-semibold text-gray-900">
                   今日のスケジュール ({format(new Date(), 'M月d日')})
                 </h2>
-                <Link
-                  href="/tasks"
-                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                <button
+                  onClick={handleManualGenerate}
+                  className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-purple-500"
                 >
-                  すべて見る →
-                </Link>
+                  <Clock className="w-4 h-4" />
+                  <span>今日のタスクを生成</span>
+                </button>
               </div>
               <TaskList showTitle={false} />
             </div>
+
+            {/* 今週の予定 */}
+            <FutureTasksPanel
+              tasks={futureOneTimeTasks}
+              daysToShow={daysToShow}
+              onDaysChange={updateDaysToShow}
+            />
           </div>
 
           {/* 右サイドバー */}

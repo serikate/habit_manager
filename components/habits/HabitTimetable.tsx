@@ -4,11 +4,15 @@ import { useMemo, useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { useHabitStore } from '@/stores/habitStore'
 import type { Habit, DailyTask } from '@/types'
+import { Edit2, Trash2, X } from 'lucide-react'
 
 interface HabitTimetableProps {
   habits: Habit[]
   onHabitClick?: (habit: Habit, day: string, time: string) => void
-  onTaskUpdate?: () => void
+  onHabitEdit?: (habit: Habit) => void
+  onHabitDelete?: (habit: Habit) => void
+  onScheduleEdit?: (habit: Habit, day: string) => void
+  onScheduleDelete?: (habit: Habit, day: string) => void
 }
 
 interface TimetableSlot {
@@ -19,9 +23,10 @@ interface TimetableSlot {
   }[]
 }
 
-export default function HabitTimetable({ habits, onHabitClick, onTaskUpdate }: HabitTimetableProps) {
+export default function HabitTimetable({ habits, onHabitClick, onHabitEdit, onHabitDelete, onScheduleEdit, onScheduleDelete }: HabitTimetableProps) {
   const { getTodayTasks } = useHabitStore()
   const [todayTasks, setTodayTasks] = useState<DailyTask[]>([])
+  const [contextMenu, setContextMenu] = useState<{ habitId: string; day: string; x: number; y: number } | null>(null)
 
   // 今日のタスクを取得
   const fetchTodayTasks = async () => {
@@ -33,12 +38,12 @@ export default function HabitTimetable({ habits, onHabitClick, onTaskUpdate }: H
     fetchTodayTasks()
   }, [getTodayTasks])
 
-  // タスク更新時のリフレッシュ
+  // コンテキストメニューを閉じる
   useEffect(() => {
-    if (onTaskUpdate) {
-      fetchTodayTasks()
-    }
-  }, [onTaskUpdate])
+    const handleClick = () => setContextMenu(null)
+    document.addEventListener('click', handleClick)
+    return () => document.removeEventListener('click', handleClick)
+  }, [])
 
   // 時間帯とその時間の習慣を整理
   const timetableData = useMemo(() => {
@@ -113,7 +118,7 @@ export default function HabitTimetable({ habits, onHabitClick, onTaskUpdate }: H
         </div>
         <div className="text-right">
           <div className="text-sm text-gray-500">
-            今日: {format(new Date(), 'M月d日(E)', { locale: { localize: { day: () => '今日' } } })}
+            今日: {format(new Date(), 'M月d日')}
           </div>
         </div>
       </div>
@@ -154,69 +159,107 @@ export default function HabitTimetable({ habits, onHabitClick, onTaskUpdate }: H
                   }`}
                 >
                   {habitInfo ? (
-                    <button
-                      onClick={() => onHabitClick?.(habitInfo.habit, day, timeSlot.time)}
-                      className={`w-full h-full min-h-[64px] p-3 rounded-md border-2 transition-all duration-200 group ${
-                        isCompleted && isToday
-                          ? 'border-green-300 bg-green-100 hover:bg-green-200'
-                          : isToday
-                          ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 hover:border-primary-300'
-                          : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
-                      }`}
-                      style={{
-                        backgroundColor:
+                    <div className="relative w-full h-full group/cell">
+                      <button
+                        onClick={() => onHabitClick?.(habitInfo.habit, day, timeSlot.time)}
+                        onContextMenu={(e) => {
+                          e.preventDefault()
+                          setContextMenu({
+                            habitId: habitInfo.habit.id,
+                            day: day,
+                            x: e.clientX,
+                            y: e.clientY
+                          })
+                        }}
+                        className={`w-full h-full min-h-[64px] p-3 rounded-md border-2 transition-all duration-200 ${
                           isCompleted && isToday
-                            ? '#dcfce7'
-                            : habitInfo.habit.category?.color && isToday
-                            ? `${habitInfo.habit.category.color}15`
-                            : habitInfo.habit.category?.color && !isToday
-                            ? `${habitInfo.habit.category.color}08`
-                            : undefined,
-                        borderColor:
-                          isCompleted && isToday
-                            ? '#86efac'
-                            : habitInfo.habit.category?.color && isToday
-                            ? `${habitInfo.habit.category.color}40`
-                            : habitInfo.habit.category?.color && !isToday
-                            ? `${habitInfo.habit.category.color}20`
-                            : undefined
-                      }}
-                    >
-                      <div className="text-center">
-                        {isCompleted && isToday && (
-                          <div className="text-lg mb-1">✅</div>
-                        )}
-                        <div className={`text-sm font-medium mb-1 line-clamp-2 ${
-                          isCompleted && isToday
-                            ? 'text-green-800 group-hover:text-green-900'
+                            ? 'border-green-300 bg-green-100 hover:bg-green-200'
                             : isToday
-                            ? 'text-gray-900 group-hover:text-primary-700'
-                            : 'text-gray-600 group-hover:text-gray-700'
-                        }`}>
-                          {habitInfo.habit.name}
-                        </div>
-                        <div className={`text-xs ${
-                          isCompleted && isToday
-                            ? 'text-green-700 group-hover:text-green-800'
-                            : isToday
-                            ? 'text-gray-600 group-hover:text-primary-600'
-                            : 'text-gray-500 group-hover:text-gray-600'
-                        }`}>
-                          {habitInfo.habit.default_duration}分
-                        </div>
-                        {habitInfo.habit.category && (
-                          <div className={`text-xs mt-1 ${
+                            ? 'border-primary-200 bg-primary-50 hover:bg-primary-100 hover:border-primary-300'
+                            : 'border-gray-200 bg-gray-50 hover:bg-gray-100'
+                        }`}
+                        style={{
+                          backgroundColor:
                             isCompleted && isToday
-                              ? 'text-green-600 group-hover:text-green-700'
+                              ? '#dcfce7'
+                              : habitInfo.habit.category?.color && isToday
+                              ? `${habitInfo.habit.category.color}15`
+                              : habitInfo.habit.category?.color && !isToday
+                              ? `${habitInfo.habit.category.color}08`
+                              : undefined,
+                          borderColor:
+                            isCompleted && isToday
+                              ? '#86efac'
+                              : habitInfo.habit.category?.color && isToday
+                              ? `${habitInfo.habit.category.color}40`
+                              : habitInfo.habit.category?.color && !isToday
+                              ? `${habitInfo.habit.category.color}20`
+                              : undefined
+                        }}
+                      >
+                        <div className="text-center">
+                          {isCompleted && isToday && (
+                            <div className="text-lg mb-1">✅</div>
+                          )}
+                          <div className={`text-sm font-medium mb-1 line-clamp-2 ${
+                            isCompleted && isToday
+                              ? 'text-green-800 group-hover/cell:text-green-900'
                               : isToday
-                              ? 'text-gray-500 group-hover:text-primary-500'
-                              : 'text-gray-400 group-hover:text-gray-500'
+                              ? 'text-gray-900 group-hover/cell:text-primary-700'
+                              : 'text-gray-600 group-hover/cell:text-gray-700'
                           }`}>
-                            {habitInfo.habit.category.name}
+                            {habitInfo.habit.name}
                           </div>
-                        )}
+                          <div className={`text-xs ${
+                            isCompleted && isToday
+                              ? 'text-green-700 group-hover/cell:text-green-800'
+                              : isToday
+                              ? 'text-gray-600 group-hover/cell:text-primary-600'
+                              : 'text-gray-500 group-hover/cell:text-gray-600'
+                          }`}>
+                            {habitInfo.habit.default_duration}分
+                          </div>
+                          {habitInfo.habit.category && (
+                            <div className={`text-xs mt-1 ${
+                              isCompleted && isToday
+                                ? 'text-green-600 group-hover/cell:text-green-700'
+                                : isToday
+                                ? 'text-gray-500 group-hover/cell:text-primary-500'
+                                : 'text-gray-400 group-hover/cell:text-gray-500'
+                            }`}>
+                              {habitInfo.habit.category.name}
+                            </div>
+                          )}
+                        </div>
+                      </button>
+
+                      {/* ホバー時のアクションボタン */}
+                      <div className="absolute top-1 right-1 opacity-0 group-hover/cell:opacity-100 transition-opacity flex gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onScheduleEdit?.(habitInfo.habit, day)
+                          }}
+                          className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                          title="この曜日の設定を編集"
+                        >
+                          <Edit2 className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            const dayLabel = ['月', '火', '水', '木', '金', '土', '日'][['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].indexOf(day)]
+                            if (confirm(`${dayLabel}曜日の「${habitInfo.habit.name}」を削除しますか？`)) {
+                              onScheduleDelete?.(habitInfo.habit, day)
+                            }
+                          }}
+                          className="p-1 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                          title="この曜日の設定を削除"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
                       </div>
-                    </button>
+                    </div>
                   ) : (
                     <div className="w-full h-full min-h-[64px] flex items-center justify-center">
                       <div className="text-gray-300 text-xs">─</div>
@@ -284,6 +327,78 @@ export default function HabitTimetable({ habits, onHabitClick, onTaskUpdate }: H
           </div>
         </div>
       </div>
+
+      {/* コンテキストメニュー */}
+      {contextMenu && (
+        <div
+          className="fixed bg-white shadow-lg rounded-lg border border-gray-200 py-1 z-50 min-w-[200px]"
+          style={{ top: contextMenu.y, left: contextMenu.x }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {(() => {
+            const habit = habits.find(h => h.id === contextMenu.habitId)
+            if (!habit) return null
+
+            const dayLabel = ['月', '火', '水', '木', '金', '土', '日'][['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].indexOf(contextMenu.day)]
+
+            return (
+              <>
+                <div className="px-4 py-2 text-xs text-gray-500 border-b">
+                  {dayLabel}曜日の設定
+                </div>
+                <button
+                  onClick={() => {
+                    onScheduleEdit?.(habit, contextMenu.day)
+                    setContextMenu(null)
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <Edit2 className="w-4 h-4 text-blue-600" />
+                  <span>この曜日の時間を編集</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`${dayLabel}曜日の「${habit.name}」を削除しますか？`)) {
+                      onScheduleDelete?.(habit, contextMenu.day)
+                    }
+                    setContextMenu(null)
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>この曜日の設定を削除</span>
+                </button>
+                <div className="border-t my-1"></div>
+                <div className="px-4 py-2 text-xs text-gray-500 border-b">
+                  習慣全体の設定
+                </div>
+                <button
+                  onClick={() => {
+                    onHabitEdit?.(habit)
+                    setContextMenu(null)
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
+                >
+                  <Edit2 className="w-4 h-4 text-purple-600" />
+                  <span>習慣全体を編集</span>
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm(`「${habit.name}」全体を削除しますか？`)) {
+                      onHabitDelete?.(habit)
+                    }
+                    setContextMenu(null)
+                  }}
+                  className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2 text-red-600"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>習慣全体を削除</span>
+                </button>
+              </>
+            )
+          })()}
+        </div>
+      )}
     </div>
   )
 }

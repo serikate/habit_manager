@@ -44,7 +44,7 @@ export function generateHabitTaskForDate(
     is_recurring: true,
     status: 'pending',
     auto_generated: true,
-    scheduled_time: daySchedule.time
+    ...(daySchedule.time ? { scheduled_time: daySchedule.time } : {})
   }
 }
 

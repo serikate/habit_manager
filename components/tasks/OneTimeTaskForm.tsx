@@ -36,10 +36,9 @@ export default function OneTimeTaskForm({ isOpen, onClose, onSuccess }: OneTimeT
     watch,
     formState: { errors },
   } = useForm<CreateOneTimeTaskData>({
-    resolver: zodResolver(oneTimeTaskSchema),
+    resolver: zodResolver(oneTimeTaskSchema) as any,
     defaultValues: {
       title: '',
-      description: '',
       deadline: '',
       estimated_duration: 30,
       importance: 2,

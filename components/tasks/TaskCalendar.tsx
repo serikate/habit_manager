@@ -34,7 +34,7 @@ export default function TaskCalendar() {
       if (!grouped[task.date]) {
         grouped[task.date] = { dailyTasks: [], oneTimeTasks: [] }
       }
-      grouped[task.date].dailyTasks.push(task)
+      grouped[task.date]!.dailyTasks.push(task)
     })
 
     // 単発タスク（OneTimeTask）をグループ化（期限日で）
@@ -44,7 +44,7 @@ export default function TaskCalendar() {
         if (!grouped[deadlineDate]) {
           grouped[deadlineDate] = { dailyTasks: [], oneTimeTasks: [] }
         }
-        grouped[deadlineDate].oneTimeTasks.push(task)
+        grouped[deadlineDate]!.oneTimeTasks.push(task)
       }
     })
 
@@ -62,8 +62,7 @@ export default function TaskCalendar() {
   const toggleOneTimeTaskStatus = async (taskId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'completed' ? 'pending' : 'completed'
     await updateOneTimeTask(taskId, {
-      status: newStatus,
-      completed_at: newStatus === 'completed' ? new Date().toISOString() : null
+      status: newStatus
     })
     fetchOneTimeTasks() // 更新後にデータを再取得
   }
@@ -101,12 +100,16 @@ export default function TaskCalendar() {
               priority: 5, // 習慣タスクは中程度の優先度
               displayTime: task.scheduled_time || ''
             })),
-            ...dayTasks.oneTimeTasks.map(task => ({
-              ...task,
-              type: 'onetime' as const,
-              priority: task.importance * task.urgency,
-              displayTime: format(new Date(task.deadline), 'HH:mm')
-            }))
+            ...dayTasks.oneTimeTasks.map(task => {
+              const urgency = calculateUrgency(task.deadline)
+              return {
+                ...task,
+                type: 'onetime' as const,
+                priority: task.importance * urgency,
+                urgency,
+                displayTime: format(new Date(task.deadline), 'HH:mm')
+              }
+            })
           ].sort((a, b) => b.priority - a.priority) // 優先度の高い順
 
           const displayTasks = allTasks.slice(0, 2)
@@ -299,41 +302,44 @@ export default function TaskCalendar() {
                   <div>
                     <h4 className="text-sm font-medium text-gray-700 mb-2">単発タスク</h4>
                     <div className="space-y-2">
-                      {selectedDayTasks.oneTimeTasks.map(task => (
-                        <div
-                          key={task.id}
-                          onClick={() => toggleOneTimeTaskStatus(task.id, task.status)}
-                          className={`p-2 rounded border text-sm cursor-pointer transition-colors ${
-                            task.status === 'completed'
-                              ? 'bg-blue-100 border-blue-300'
-                              : getPriorityColor(task.importance, task.urgency)
-                          }`}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium">{task.title}</span>
-                            {task.status === 'completed' ? (
-                              <CheckCircle className="w-4 h-4 text-green-600" />
-                            ) : (
-                              <Circle className="w-4 h-4 text-gray-400" />
+                      {selectedDayTasks.oneTimeTasks.map(task => {
+                        const urgency = calculateUrgency(task.deadline)
+                        return (
+                          <div
+                            key={task.id}
+                            onClick={() => toggleOneTimeTaskStatus(task.id, task.status)}
+                            className={`p-2 rounded border text-sm cursor-pointer transition-colors ${
+                              task.status === 'completed'
+                                ? 'bg-blue-100 border-blue-300'
+                                : getPriorityColor(task.importance, urgency)
+                            }`}
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-medium">{task.title}</span>
+                              {task.status === 'completed' ? (
+                                <CheckCircle className="w-4 h-4 text-green-600" />
+                              ) : (
+                                <Circle className="w-4 h-4 text-gray-400" />
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
+                              <div className="flex items-center">
+                                <Clock className="w-3 h-3 mr-1" />
+                                {task.estimated_duration}分
+                              </div>
+                              <div className="flex items-center">
+                                <Flag className="w-3 h-3 mr-1" />
+                                優先度: {task.importance * urgency}
+                              </div>
+                            </div>
+                            {task.description && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                {task.description}
+                              </div>
                             )}
                           </div>
-                          <div className="flex items-center justify-between text-xs text-gray-600 mt-1">
-                            <div className="flex items-center">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {task.estimated_duration}分
-                            </div>
-                            <div className="flex items-center">
-                              <Flag className="w-3 h-3 mr-1" />
-                              優先度: {task.importance * task.urgency}
-                            </div>
-                          </div>
-                          {task.description && (
-                            <div className="text-xs text-gray-500 mt-1">
-                              {task.description}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        )
+                      })}
                     </div>
                   </div>
                 )}

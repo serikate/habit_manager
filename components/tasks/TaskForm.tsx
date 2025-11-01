@@ -38,7 +38,7 @@ export default function TaskForm({ isOpen, onClose, onSuccess }: TaskFormProps) 
     setValue,
     formState: { errors },
   } = useForm<CreateTaskData>({
-    resolver: zodResolver(taskSchema),
+    resolver: zodResolver(taskSchema) as any,
     defaultValues: {
       habit_id: '',
       date: format(addDays(new Date(), 1), 'yyyy-MM-dd'), // 翌日をデフォルト

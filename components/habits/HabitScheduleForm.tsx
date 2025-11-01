@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -9,36 +9,7 @@ import type { HabitScheduleForm, WeeklySchedule, DaySchedule } from '@/types'
 const scheduleSchema = z.object({
   quickPattern: z.enum(['weekdays', 'everyday', 'weekends', 'custom']),
   quickTime: z.string().min(1, '時間を選択してください'),
-  detailSchedule: z.object({
-    monday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-    tuesday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-    wednesday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-    thursday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-    friday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-    saturday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-    sunday: z.object({
-      enabled: z.boolean(),
-      time: z.string().optional()
-    }).optional(),
-  }).optional(),
+  detailSchedule: z.any().optional(),
   selectedPreset: z.string().optional(),
 })
 
@@ -61,17 +32,55 @@ export default function HabitScheduleForm({
     getValues,
     formState: { errors }
   } = useForm<HabitScheduleForm>({
-    resolver: zodResolver(scheduleSchema),
+    resolver: zodResolver(scheduleSchema) as any,
     defaultValues: {
       quickPattern: 'weekdays',
       quickTime: '06:00',
-      detailSchedule: initialSchedule,
-      selectedPreset: undefined
+      detailSchedule: initialSchedule
     }
   })
 
   const quickPattern = watch('quickPattern')
   const quickTime = watch('quickTime')
+
+  // quickPatternとquickTimeの変更を監視して自動適用
+  useEffect(() => {
+    if (quickPattern !== 'custom') {
+      let newSchedule: WeeklySchedule = {}
+
+      switch (quickPattern) {
+        case 'weekdays':
+          newSchedule = {
+            monday: { enabled: true, time: quickTime },
+            tuesday: { enabled: true, time: quickTime },
+            wednesday: { enabled: true, time: quickTime },
+            thursday: { enabled: true, time: quickTime },
+            friday: { enabled: true, time: quickTime }
+          }
+          break
+        case 'everyday':
+          newSchedule = {
+            monday: { enabled: true, time: quickTime },
+            tuesday: { enabled: true, time: quickTime },
+            wednesday: { enabled: true, time: quickTime },
+            thursday: { enabled: true, time: quickTime },
+            friday: { enabled: true, time: quickTime },
+            saturday: { enabled: true, time: quickTime },
+            sunday: { enabled: true, time: quickTime }
+          }
+          break
+        case 'weekends':
+          newSchedule = {
+            saturday: { enabled: true, time: quickTime },
+            sunday: { enabled: true, time: quickTime }
+          }
+          break
+      }
+
+      setValue('detailSchedule', newSchedule)
+      onScheduleChange(newSchedule)
+    }
+  }, [quickPattern, quickTime, setValue, onScheduleChange])
 
   // プリセットパターン
   const presets = [
@@ -279,38 +288,39 @@ export default function HabitScheduleForm({
                   <label htmlFor={option.value} className="ml-3 text-sm text-gray-700">
                     {option.label}
                   </label>
-                  {option.value !== 'custom' && (
-                    <div className="ml-auto flex items-center space-x-2">
-                      <span className="text-sm text-gray-500">時間</span>
-                      <select
-                        {...register('quickTime')}
-                        disabled={quickPattern !== option.value}
-                        className="px-2 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
-                      >
-                        {Array.from({ length: 24 }, (_, i) => {
-                          const hour = i.toString().padStart(2, '0')
-                          return (
-                            <option key={hour} value={`${hour}:00`}>
-                              {hour}:00
-                            </option>
-                          )
-                        })}
-                      </select>
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           </div>
 
           {quickPattern !== 'custom' && (
-            <button
-              type="button"
-              onClick={applyQuickSetting}
-              className="w-full px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-            >
-              設定を適用
-            </button>
+            <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+              <label className="text-sm font-medium text-gray-900">⏰ 実行時間を選択</label>
+              <input
+                type="time"
+                {...register('quickTime')}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-base focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+
+              {/* クイック選択ボタン */}
+              <div>
+                <p className="text-xs text-gray-600 mb-2">よく使う時間:</p>
+                <div className="flex flex-wrap gap-2">
+                  {['05:00', '06:00', '07:00', '12:00', '18:00', '19:00', '20:00', '21:00', '22:00'].map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => setValue('quickTime', time)}
+                      className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-500">※ パターンや時間を変更すると自動的に適用されます</p>
+            </div>
           )}
         </div>
       )}
@@ -324,7 +334,7 @@ export default function HabitScheduleForm({
               {dayNames.map((day, index) => {
                 const daySchedule = currentDetailSchedule[day as keyof WeeklySchedule] || { enabled: false }
                 return (
-                  <div key={day} className="space-y-2">
+                  <div key={day} className="space-y-2 p-3 border border-gray-200 rounded-lg bg-white">
                     <div className="flex items-center">
                       <input
                         type="checkbox"
@@ -340,7 +350,8 @@ export default function HabitScheduleForm({
                         {dayLabels[index]}
                       </label>
                     </div>
-                    <select
+                    <input
+                      type="time"
                       value={daySchedule.time || '06:00'}
                       onChange={(e) => updateDetailSchedule(day as keyof WeeklySchedule, {
                         enabled: daySchedule.enabled,
@@ -348,16 +359,25 @@ export default function HabitScheduleForm({
                       })}
                       disabled={!daySchedule.enabled}
                       className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 disabled:bg-gray-100"
-                    >
-                      {Array.from({ length: 24 }, (_, i) => {
-                        const hour = i.toString().padStart(2, '0')
-                        return (
-                          <option key={hour} value={`${hour}:00`}>
-                            {hour}:00
-                          </option>
-                        )
-                      })}
-                    </select>
+                    />
+                    {/* 個別のクイック選択 */}
+                    {daySchedule.enabled && (
+                      <div className="flex flex-wrap gap-1">
+                        {['06:00', '12:00', '19:00', '21:00'].map((time) => (
+                          <button
+                            key={time}
+                            type="button"
+                            onClick={() => updateDetailSchedule(day as keyof WeeklySchedule, {
+                              enabled: daySchedule.enabled,
+                              time: time
+                            })}
+                            className="px-2 py-0.5 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                          >
+                            {time}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )
               })}
@@ -365,35 +385,46 @@ export default function HabitScheduleForm({
           </div>
 
           {/* 一括操作 */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-gray-900">🔧 一括操作</h4>
-                <p className="text-xs text-gray-600 mt-1">選択中の曜日に一括適用</p>
-              </div>
-              <div className="flex items-center space-x-2">
-                <label htmlFor="bulk-time" className="text-sm text-gray-700">時間:</label>
-                <select
-                  id="bulk-time"
-                  defaultValue="19:00"
-                  className="px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  {Array.from({ length: 24 }, (_, i) => {
-                    const hour = i.toString().padStart(2, '0')
-                    return (
-                      <option key={hour} value={`${hour}:00`}>
-                        {hour}:00
-                      </option>
-                    )
-                  })}
-                </select>
-                <button
-                  type="button"
-                  onClick={applyToSelectedDays}
-                  className="px-3 py-1 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                >
-                  適用
-                </button>
+          <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+            <div>
+              <h4 className="text-sm font-medium text-gray-900">🔧 一括操作</h4>
+              <p className="text-xs text-gray-600 mt-1">選択中の曜日に一括適用</p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <label htmlFor="bulk-time" className="text-sm text-gray-700">時間:</label>
+              <input
+                type="time"
+                id="bulk-time"
+                defaultValue="19:00"
+                className="px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
+              />
+              <button
+                type="button"
+                onClick={applyToSelectedDays}
+                className="px-3 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              >
+                適用
+              </button>
+            </div>
+            {/* 一括適用用クイック選択 */}
+            <div>
+              <p className="text-xs text-gray-600 mb-2">よく使う時間:</p>
+              <div className="flex flex-wrap gap-2">
+                {['06:00', '07:00', '12:00', '18:00', '19:00', '20:00', '21:00'].map((time) => (
+                  <button
+                    key={time}
+                    type="button"
+                    onClick={() => {
+                      const bulkTimeInput = document.getElementById('bulk-time') as HTMLInputElement
+                      if (bulkTimeInput) {
+                        bulkTimeInput.value = time
+                      }
+                    }}
+                    className="px-3 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-primary-50 hover:border-primary-300 hover:text-primary-700 transition-colors"
+                  >
+                    {time}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
