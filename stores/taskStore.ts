@@ -24,6 +24,7 @@ interface TaskState {
   deleteTask: (id: string) => Promise<boolean>
   completeTask: (taskId: string) => Promise<boolean>  // 🆕 引数を削除
   startTask: (id: string) => Promise<boolean>
+  uncompleteTask: (taskId: string) => Promise<boolean>  // 🆕 未完了に戻す
   editExecution: (executionId: string, data: EditExecutionData) => Promise<boolean>  // 🆕 追加
 
   // One-Time Task Actions
@@ -298,6 +299,56 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         todayTasks: state.todayTasks.map(t =>
           t.id === taskId ? { ...t, status: 'completed' } : t
         ),
+        loading: false
+      }))
+
+      return true
+    } catch (error: any) {
+      set({ error: error.message, loading: false })
+      return false
+    }
+  },
+
+  uncompleteTask: async (taskId: string) => {
+    const supabase = createClient()
+    set({ loading: true, error: null })
+
+    try {
+      // タスクの実行履歴を削除
+      const { error: executionError } = await supabase
+        .from('task_executions')
+        .delete()
+        .eq('task_id', taskId)
+
+      if (executionError) throw executionError
+
+      // タスクステータスを pending に戻し、started_at をクリア
+      const { error: taskError } = await supabase
+        .from('daily_tasks')
+        .update({
+          status: 'pending',
+          started_at: null
+        })
+        .eq('id', taskId)
+
+      if (taskError) throw taskError
+
+      // 状態更新
+      set(state => ({
+        tasks: state.tasks.map(t => {
+          if (t.id === taskId) {
+            const { started_at, executions, ...rest } = t
+            return { ...rest, status: 'pending' as const }
+          }
+          return t
+        }),
+        todayTasks: state.todayTasks.map(t => {
+          if (t.id === taskId) {
+            const { started_at, executions, ...rest } = t
+            return { ...rest, status: 'pending' as const }
+          }
+          return t
+        }),
         loading: false
       }))
 

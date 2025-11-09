@@ -6,6 +6,7 @@ import type { DailyTask, OneTimeTask } from '@/types'
 import { Clock, AlertCircle, Edit2 } from 'lucide-react'
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
 import {
+  getTaskScheduledTime,
   getScheduledTimeRange,
   getActualTimeRange,
   getAchievementColor
@@ -17,7 +18,7 @@ interface TaskListProps {
 }
 
 export default function TaskList({ showTitle = true }: TaskListProps) {
-  const { todayTasks, oneTimeTasks, startTask, completeTask } = useTaskStore()
+  const { todayTasks, oneTimeTasks, startTask, completeTask, uncompleteTask } = useTaskStore()
   const [editingExecution, setEditingExecution] = useState<{
     execution: any
     task: DailyTask
@@ -41,9 +42,26 @@ export default function TaskList({ showTitle = true }: TaskListProps) {
 
   // 時系列でソート
   const sortedTasks = allTasks.sort((a, b) => {
-    const timeA = 'scheduled_time' in a && a.scheduled_time ? a.scheduled_time : '23:59'
-    const timeB = 'scheduled_time' in b && b.scheduled_time ? b.scheduled_time : '23:59'
-    return timeA.localeCompare(timeB)
+    // 習慣タスクの場合は getTaskScheduledTime で動的に時間を取得
+    let timeA: string | undefined
+    let timeB: string | undefined
+
+    if (a.taskType === 'habit') {
+      timeA = getTaskScheduledTime(a as DailyTask)
+    } else if ('scheduled_time' in a) {
+      timeA = (a as any).scheduled_time
+    }
+
+    if (b.taskType === 'habit') {
+      timeB = getTaskScheduledTime(b as DailyTask)
+    } else if ('scheduled_time' in b) {
+      timeB = (b as any).scheduled_time
+    }
+
+    const sortTimeA = timeA || '23:59'
+    const sortTimeB = timeB || '23:59'
+
+    return sortTimeA.localeCompare(sortTimeB)
   })
 
   // 期限超過かどうかを判定
@@ -116,8 +134,10 @@ export default function TaskList({ showTitle = true }: TaskListProps) {
                 <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
                   {/* 予定時間の表示（習慣タスクのみ） */}
                   {task.taskType === 'habit' && (() => {
+                    // タスクまたは習慣マスターから scheduled_time を取得
+                    const taskScheduledTime = getTaskScheduledTime(task as DailyTask)
                     const scheduledTime = getScheduledTimeRange(
-                      task.scheduled_time,
+                      taskScheduledTime,
                       task.estimated_duration
                     )
                     return (
@@ -183,6 +203,16 @@ export default function TaskList({ showTitle = true }: TaskListProps) {
                     </button>
                   )}
                 </div>
+              )}
+
+              {/* 未完了に戻すボタン（完了済みのみ） */}
+              {task.status === 'completed' && (
+                <button
+                  onClick={() => uncompleteTask(task.id)}
+                  className="px-3 py-1 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
+                >
+                  未完了に戻す
+                </button>
               )}
             </div>
           </div>

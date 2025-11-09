@@ -287,7 +287,8 @@ export const useHabitStore = create<HabitState>((set, get) => ({
             deadline: task.deadline,
             is_recurring: task.is_recurring!,
             status: task.status!,
-            auto_generated: task.auto_generated
+            auto_generated: task.auto_generated,
+            scheduled_time: task.scheduled_time  // 🆕 scheduled_time を追加
           }))
         )
         .select(`

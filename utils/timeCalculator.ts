@@ -1,4 +1,41 @@
 import { format, parseISO, addMinutes } from 'date-fns'
+import type { DailyTask } from '@/types'
+
+/**
+ * タスクから予定開始時刻を取得する
+ * scheduled_time が設定されている場合はそれを返し、
+ * 設定されていない場合は習慣マスターの schedule から取得する
+ * @param task タスクオブジェクト
+ * @returns 予定開始時刻（"05:30" 形式）、または undefined
+ */
+export function getTaskScheduledTime(task: DailyTask): string | undefined {
+  // タスクに scheduled_time が設定されている場合はそれを使う
+  if (task.scheduled_time) {
+    return task.scheduled_time
+  }
+
+  // 習慣タスクでない場合は undefined
+  if (!task.habit || !task.habit.schedule) {
+    return undefined
+  }
+
+  // タスクの日付から曜日を取得
+  const taskDate = new Date(task.date)
+  const dayOfWeek = taskDate.getDay() // 0=Sunday, 1=Monday, ...
+
+  // 曜日名に変換
+  const dayNames: Array<keyof typeof task.habit.schedule> = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
+  const dayName = dayNames[dayOfWeek]
+
+  if (!dayName) {
+    return undefined
+  }
+
+  // 習慣マスターの schedule から該当曜日の時間を取得
+  const daySchedule = task.habit.schedule[dayName]
+
+  return daySchedule?.time
+}
 
 /**
  * 予定時間帯を計算して表示用の文字列を返す
