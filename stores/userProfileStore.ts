@@ -173,7 +173,7 @@ export const useUserProfileStore = create<UserProfileState>((set, get) => ({
       const { newStreak, isExtended } = await get().updateStreak(now)
 
       // XP計算
-      const baseXP = 100 // 🧪 テスト用: 基本100XP（本番では1に戻す）
+      const baseXP = 1 // 習慣1回達成につき1XP
       const streakBonus = calculateStreakBonus(newStreak)
       const totalXP = baseXP + streakBonus
 
