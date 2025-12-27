@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { createClient } from '@/lib/supabase'
+import { tutorialEvents } from '@/lib/tutorialEvents'
 import type { Habit, Category, CreateHabitData, CreateCategoryData, DailyTask } from '@/types'
 import { generateTodayHabitTasks, generateTomorrowHabitTasks, filterNewHabitTasks } from '@/utils/habitTaskGenerator'
 
@@ -82,6 +83,7 @@ export const useHabitStore = create<HabitState>((set, get) => ({
           user_id: user.id,
           name: data.name,
           category_id: data.category_id,
+          short_term_goal_id: data.short_term_goal_id,  // 🆕 短期目標への紐づけ
           default_duration: data.default_duration,
           avg_actual_duration: data.default_duration,
           level: 1,
@@ -91,7 +93,8 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         })
         .select(`
           *,
-          category:categories(*)
+          category:categories(*),
+          short_term_goal:short_term_goals(*)
         `)
         .single()
 
@@ -101,6 +104,9 @@ export const useHabitStore = create<HabitState>((set, get) => ({
         habits: [habit, ...state.habits],
         loading: false
       }))
+
+      // チュートリアルイベント発火
+      tutorialEvents.emit('habit-created')
 
       return habit
     } catch (error: any) {

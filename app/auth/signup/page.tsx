@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import AuthForm from '@/components/auth/AuthForm'
 
 export default function SignupPage() {
@@ -8,7 +9,9 @@ export default function SignupPage() {
           習慣化×タスク管理アプリ
         </h1>
       </div>
-      <AuthForm mode="signup" />
+      <Suspense fallback={<div className="text-center">読み込み中...</div>}>
+        <AuthForm mode="signup" />
+      </Suspense>
     </div>
   )
 }

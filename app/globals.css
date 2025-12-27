@@ -1,20 +1,443 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-50: #eff6ff;
-  --color-primary-100: #dbeafe;
-  --color-primary-200: #bfdbfe;
-  --color-primary-300: #93c5fd;
-  --color-primary-400: #60a5fa;
-  --color-primary-500: #3b82f6;
-  --color-primary-600: #2563eb;
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* ===== 基調色（Surface）- Notion/Linearライクなニュートラル ===== */
+  --color-surface-50: #FAFBFC;
+  --color-surface-100: #F4F5F7;
+  --color-surface-200: #E9EBEF;
+  --color-surface-300: #DFE1E6;
+  --color-surface-400: #C1C7D0;
+  --color-surface-500: #97A0AF;
+  --color-surface-600: #6B7785;
+  --color-surface-700: #42526E;
+  --color-surface-800: #253858;
+  --color-surface-900: #172B4D;
+
+  /* ===== プライマリカラー（Indigo）- 知性と信頼 ===== */
+  --color-primary-50: #EEF2FF;
+  --color-primary-100: #E0E7FF;
+  --color-primary-200: #C7D2FE;
+  --color-primary-300: #A5B4FC;
+  --color-primary-400: #818CF8;
+  --color-primary-500: #6366F1;
+  --color-primary-600: #4F46E5;
+  --color-primary-700: #4338CA;
+  --color-primary-800: #3730A3;
+  --color-primary-900: #312E81;
+
+  /* ===== 成功色（Emerald）- 達成感 ===== */
+  --color-success-50: #ECFDF5;
+  --color-success-100: #D1FAE5;
+  --color-success-200: #A7F3D0;
+  --color-success-300: #6EE7B7;
+  --color-success-400: #34D399;
+  --color-success-500: #10B981;
+  --color-success-600: #059669;
+  --color-success-700: #047857;
+
+  /* ===== アクセント色（Amber）- XP・レベル・祝福 ===== */
+  --color-accent-50: #FFFBEB;
+  --color-accent-100: #FEF3C7;
+  --color-accent-200: #FDE68A;
+  --color-accent-300: #FCD34D;
+  --color-accent-400: #FBBF24;
+  --color-accent-500: #F59E0B;
+  --color-accent-600: #D97706;
+  --color-accent-700: #B45309;
+
+  /* ===== 警告色 ===== */
+  --color-warning-50: #FFFBEB;
+  --color-warning-100: #FEF3C7;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #D97706;
+
+  /* ===== 危険色 ===== */
+  --color-danger-50: #FEF2F2;
+  --color-danger-100: #FEE2E2;
+  --color-danger-500: #EF4444;
+  --color-danger-600: #DC2626;
+  --color-danger-700: #B91C1C;
+
+  /* ===== 情報色 ===== */
+  --color-info-50: #EFF6FF;
+  --color-info-100: #DBEAFE;
+  --color-info-500: #3B82F6;
+  --color-info-600: #2563EB;
 }
 
+/* ===== ライトモード変数 ===== */
+:root, .light {
+  --bg-primary: #F4F5F7;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #FFFFFF;
+  --text-primary: #172B4D;
+  --text-secondary: #6B7785;
+  --text-tertiary: #97A0AF;
+  --border-primary: #E9EBEF;
+  --border-secondary: #DFE1E6;
+}
+
+/* ===== ダークモード変数 ===== */
+.dark {
+  --bg-primary: #0F172A;
+  --bg-secondary: #1E293B;
+  --bg-card: #1E293B;
+  --bg-elevated: #334155;
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-tertiary: #64748B;
+  --border-primary: #334155;
+  --border-secondary: #475569;
+}
+
+/* ===== オーロラテーマ（ライトモード） ===== */
+.aurora:not(.dark), .light.aurora {
+  /* 背景：淡いティール系 */
+  --bg-primary: #F0FDFA;
+  --bg-secondary: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-elevated: #ECFEFF;
+  /* テキスト：ティール〜紫系 */
+  --text-primary: #134E4A;
+  --text-secondary: #0F766E;
+  --text-tertiary: #14B8A6;
+  /* ボーダー */
+  --border-primary: #99F6E4;
+  --border-secondary: #5EEAD4;
+  /* オーロラカラーパレット（アニメーション準拠） */
+  --aurora-teal: #2DD4BF;
+  --aurora-emerald: #10B981;
+  --aurora-cyan: #22D3EE;
+  --aurora-purple: #A855F7;
+  --aurora-pink: #EC4899;
+  --aurora-orange: #F59E0B;
+  /* プライマリカラー（ティール系） */
+  --aurora-primary-50: #F0FDFA;
+  --aurora-primary-100: #CCFBF1;
+  --aurora-primary-200: #99F6E4;
+  --aurora-primary-300: #5EEAD4;
+  --aurora-primary-400: #2DD4BF;
+  --aurora-primary-500: #14B8A6;
+  --aurora-primary-600: #0D9488;
+  --aurora-primary-700: #0F766E;
+  /* アクセントカラー */
+  --aurora-accent-400: #A855F7;
+  --aurora-accent-500: #9333EA;
+  --aurora-accent-600: #7E22CE;
+  /* 成功色（エメラルド） */
+  --aurora-success-500: #10B981;
+  --aurora-success-600: #059669;
+}
+
+/* ===== オーロラテーマ（ダークモード） ===== */
+.dark.aurora {
+  /* 背景：深い宇宙紫（アニメーション準拠） */
+  --bg-primary: #0C0A1D;
+  --bg-secondary: #150F2D;
+  --bg-card: #1A1338;
+  --bg-elevated: #221A45;
+  /* テキスト：ティール〜シアン系（アニメーション準拠） */
+  --text-primary: #5EEAD4;
+  --text-secondary: #2DD4BF;
+  --text-tertiary: #14B8A6;
+  /* ボーダー：紫系 */
+  --border-primary: #2E1A5C;
+  --border-secondary: #3D2573;
+  /* オーロラカラーパレット（アニメーション準拠） */
+  --aurora-teal: #2DD4BF;
+  --aurora-emerald: #34D399;
+  --aurora-cyan: #22D3EE;
+  --aurora-purple: #A855F7;
+  --aurora-pink: #F472B6;
+  --aurora-orange: #FBBF24;
+  /* プライマリカラー（ティール系） */
+  --aurora-primary-50: #0F766E;
+  --aurora-primary-100: #0D9488;
+  --aurora-primary-200: #14B8A6;
+  --aurora-primary-300: #2DD4BF;
+  --aurora-primary-400: #5EEAD4;
+  --aurora-primary-500: #5EEAD4;
+  --aurora-primary-600: #99F6E4;
+  --aurora-primary-700: #CCFBF1;
+  /* アクセントカラー（紫〜ピンク） */
+  --aurora-accent-400: #C084FC;
+  --aurora-accent-500: #A855F7;
+  --aurora-accent-600: #9333EA;
+  /* 成功色 */
+  --aurora-success-500: #34D399;
+  --aurora-success-600: #10B981;
+}
+
+/* オーロラテーマ用のプライマリカラー上書き */
+.aurora {
+  --color-primary-50: var(--aurora-primary-50);
+  --color-primary-100: var(--aurora-primary-100);
+  --color-primary-200: var(--aurora-primary-200);
+  --color-primary-300: var(--aurora-primary-300);
+  --color-primary-400: var(--aurora-primary-400);
+  --color-primary-500: var(--aurora-primary-500);
+  --color-primary-600: var(--aurora-primary-600);
+  --color-primary-700: var(--aurora-primary-700);
+  /* 成功色も上書き */
+  --color-success-400: var(--aurora-emerald);
+  --color-success-500: var(--aurora-success-500);
+  --color-success-600: var(--aurora-success-600);
+  /* アクセント色（紫〜ピンク） */
+  --color-accent-400: var(--aurora-accent-400);
+  --color-accent-500: var(--aurora-accent-500);
+  --color-accent-600: var(--aurora-accent-600);
+}
+
+/* オーロラテーマ：グラデーション背景効果 */
+.aurora .aurora-gradient-bg {
+  background: linear-gradient(
+    135deg,
+    var(--aurora-teal) 0%,
+    var(--aurora-emerald) 20%,
+    var(--aurora-cyan) 40%,
+    var(--aurora-purple) 60%,
+    var(--aurora-pink) 80%,
+    var(--aurora-orange) 100%
+  );
+}
+
+/* オーロラテーマ：アニメーショングラデーション */
+@keyframes aurora-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.aurora .aurora-animated-gradient {
+  background: linear-gradient(
+    90deg,
+    var(--aurora-teal),
+    var(--aurora-emerald),
+    var(--aurora-cyan),
+    var(--aurora-purple),
+    var(--aurora-pink),
+    var(--aurora-orange),
+    var(--aurora-teal)
+  );
+  background-size: 400% 100%;
+  animation: aurora-shift 10s ease-in-out infinite;
+}
+
+/* オーロラテーマ：カード用グラデーションボーダー */
+.aurora .aurora-card-glow {
+  position: relative;
+}
+
+.aurora .aurora-card-glow::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    var(--aurora-teal),
+    var(--aurora-purple),
+    var(--aurora-pink)
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ===== フォント設定 ===== */
 html, body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+/* ===== アニメーション定義 ===== */
+
+/* フェードイン・スライドアップ */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 成功パルス（控えめ） */
+@keyframes success-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+/* チェックマークポップ */
+@keyframes check-pop {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* シマー効果（プログレスバー100%時） */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* スケールイン（モーダル） */
+@keyframes scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* スライドイン（サイドバー） */
+@keyframes slide-in-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* XP獲得フライ */
+@keyframes fly-up {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+}
+
+/* アニメーションユーティリティクラス */
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+.animate-success-pulse {
+  animation: success-pulse 0.4s ease-out;
+}
+
+.animate-check-pop {
+  animation: check-pop 0.3s ease-out forwards;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slide-in-left 0.3s ease-out forwards;
+}
+
+.animate-fly-up {
+  animation: fly-up 0.6s ease-out forwards;
+}
+
+/* ===== トランジション・ホバー効果 ===== */
+
+/* カードホバー */
+.card-hover {
+  transition: all 0.2s ease-out;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.1);
+}
+
+/* ボタンホバー */
+.btn-hover {
+  transition: all 0.15s ease-out;
+}
+.btn-hover:hover {
+  transform: translateY(-1px);
+}
+.btn-hover:active {
+  transform: translateY(0);
+}
+
+/* アイコンボタンホバー */
+.icon-btn-hover {
+  transition: all 0.15s ease-out;
+}
+.icon-btn-hover:hover {
+  transform: scale(1.1);
+}
+.icon-btn-hover:active {
+  transform: scale(0.95);
+}
+
+/* ===== スクロールバーカスタマイズ ===== */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-secondary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-tertiary);
+}
+
+/* ===== フォーカス状態 ===== */
+.focus-ring {
+  outline: none;
+}
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 2px var(--bg-primary), 0 0 0 4px #6366F1;
+}
+
+/* ===== 数値表示用フォント ===== */
+.font-mono-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }

@@ -7,7 +7,13 @@ import {
   calculateAchievementRate,
   validateExecutionTime
 } from '@/utils/timeCalculator'
+import {
+  updateShortTermGoalProgress,
+  decrementShortTermGoalProgress
+} from '@/utils/goalProgressCalculator'
 import { format } from 'date-fns'
+import { useUserProfileStore } from './userProfileStore'
+import { useHabitCompletionStore } from './habitCompletionStore'
 
 interface TaskState {
   tasks: DailyTask[]
@@ -291,6 +297,65 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         if (habitError) throw habitError
       }
 
+      // 🆕 短期目標の進捗を更新
+      // タスクの実行情報を含めて渡す
+      const taskWithExecution = {
+        ...task,
+        executions: [{
+          id: 'temp',
+          task_id: taskId,
+          started_at: task.started_at,
+          completed_at: completedAt,
+          actual_duration: actualDuration,
+          achievement_rate: achievementRate
+        }]
+      }
+      await updateShortTermGoalProgress(taskWithExecution as DailyTask)
+
+      // 🆕 グローバルXP付与（習慣タスクの場合のみ）
+      let xpResult: {
+        baseXP: number
+        streakBonus: number
+        totalXP: number
+        newStreak: number
+        isStreakExtended: boolean
+        leveledUp: boolean
+        newLevel: number | undefined
+        previousProgress: number
+        currentProgress: number
+        currentLevelXP: number
+        requiredXP: number
+        currentLevel: number
+      } | null = null
+
+      if (task.is_recurring && task.habit_id) {
+        try {
+          // XP付与前のレベル情報を取得
+          const profileStore = useUserProfileStore.getState()
+          const previousLevelInfo = profileStore.getLevelInfo()
+
+          // XP付与
+          const result = await profileStore.addXPForHabitCompletion(taskId)
+
+          if (result) {
+            // XP付与後のレベル情報を取得
+            const currentLevelInfo = profileStore.getLevelInfo()
+
+            xpResult = {
+              ...result,
+              previousProgress: previousLevelInfo.progress,
+              currentProgress: currentLevelInfo.progress,
+              currentLevelXP: currentLevelInfo.currentXP,
+              requiredXP: 100, // 100XPでレベルアップ
+              currentLevel: currentLevelInfo.level
+            }
+          }
+        } catch (xpError) {
+          console.warn('グローバルXP付与に失敗:', xpError)
+          // XP付与の失敗はタスク完了を妨げない
+        }
+      }
+
       // 状態更新
       set(state => ({
         tasks: state.tasks.map(t =>
@@ -301,6 +366,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
         ),
         loading: false
       }))
+
+      // 🆕 習慣タスク完了時にポップアップを表示（XP情報付き）
+      if (task.is_recurring && task.habit) {
+        useHabitCompletionStore.getState().showCompletion(
+          task.habit.id,
+          task.habit.name,
+          xpResult || undefined
+        )
+      }
 
       return true
     } catch (error: any) {
@@ -314,6 +388,15 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     set({ loading: true, error: null })
 
     try {
+      // タスクを取得（進捗減算用）
+      const task = get().tasks.find(t => t.id === taskId) ||
+                   get().todayTasks.find(t => t.id === taskId)
+
+      // 🆕 短期目標の進捗を減算（削除前に実行）
+      if (task) {
+        await decrementShortTermGoalProgress(task)
+      }
+
       // タスクの実行履歴を削除
       const { error: executionError } = await supabase
         .from('task_executions')

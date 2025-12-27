@@ -7,7 +7,20 @@
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
       "Bash(git checkout:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(supabase --version:*)",
+      "Bash(npm install:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__apply_migration",
+      "Bash(tree:*)",
+      "Bash(python:*)",
+      "mcp__supabase__list_tables",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__list_migrations",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__get_project",
+      "Bash(git remote add:*)"
     ],
     "deny": [],
     "ask": []

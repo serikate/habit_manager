@@ -1,4 +1,35 @@
+import type { UITheme } from '@/stores/themeStore'
+
 export type TitleMode = 'business' | 'light'
+
+// レベル別テーマ解放マッピング
+export const LEVEL_THEME_UNLOCKS: Record<number, UITheme> = {
+  5: 'aurora',
+  // 将来の拡張用
+  // 10: 'cyber',
+  // 15: 'sakura',
+  // 20: 'galaxy',
+}
+
+/**
+ * 指定レベルで解放されるテーマを取得
+ */
+export function getThemeUnlockAtLevel(level: number): UITheme | null {
+  return LEVEL_THEME_UNLOCKS[level] || null
+}
+
+/**
+ * 指定レベルまでに解放される全てのテーマを取得
+ */
+export function getUnlockedThemesAtLevel(level: number): UITheme[] {
+  const themes: UITheme[] = ['default'] // デフォルトは常に解放
+  for (const [unlockLevel, themeId] of Object.entries(LEVEL_THEME_UNLOCKS)) {
+    if (parseInt(unlockLevel) <= level) {
+      themes.push(themeId)
+    }
+  }
+  return themes
+}
 
 export interface LevelInfo {
   level: number
@@ -114,5 +145,57 @@ export function getLevelUpAnimation(newLevel: number): {
     show: true,
     level: newLevel,
     title: getTitle(newLevel, 'business')
+  }
+}
+
+/**
+ * ストリークボーナスを計算
+ * 連続達成日数に応じてボーナスXPを付与
+ *
+ * ストリーク  | ボーナスXP
+ * -----------|----------
+ * 1日目      | 0
+ * 2-3日目    | +1
+ * 4-6日目    | +2
+ * 7-13日目   | +3
+ * 14-29日目  | +5
+ * 30日以上   | +7
+ */
+export function calculateStreakBonus(streak: number): number {
+  if (streak <= 1) return 0
+  if (streak <= 3) return 1
+  if (streak <= 6) return 2
+  if (streak <= 13) return 3
+  if (streak <= 29) return 5
+  return 7
+}
+
+/**
+ * 次のストリークマイルストーンを取得
+ */
+export function getNextStreakMilestone(currentStreak: number): number {
+  const milestones = [3, 7, 14, 30, 60, 90, 180, 365]
+  for (const milestone of milestones) {
+    if (currentStreak < milestone) {
+      return milestone
+    }
+  }
+  return currentStreak + 30 // 365日以上は30日刻み
+}
+
+/**
+ * ストリーク情報を取得
+ */
+export function getStreakInfo(streak: number): {
+  current: number
+  bonus: number
+  nextMilestone: number
+  daysUntilNextMilestone: number
+} {
+  return {
+    current: streak,
+    bonus: calculateStreakBonus(streak),
+    nextMilestone: getNextStreakMilestone(streak),
+    daysUntilNextMilestone: getNextStreakMilestone(streak) - streak,
   }
 }

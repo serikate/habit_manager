@@ -7,8 +7,12 @@ import HabitList from '@/components/habits/HabitList'
 import HabitForm from '@/components/habits/HabitForm'
 import CategoryForm from '@/components/categories/CategoryForm'
 import HabitTimetable from '@/components/habits/HabitTimetable'
+import { WeeklyReviewPopup } from '@/components/habits/WeeklyReviewPopup'
+import { HabitReviewModal } from '@/components/habits/HabitReviewModal'
 import { useHabitStore } from '@/stores/habitStore'
 import { useTaskStore } from '@/stores/taskStore'
+import { useThemeStore } from '@/stores/themeStore'
+import { useHabitReviewStore, type HabitSnapshot } from '@/stores/habitReviewStore'
 import { Plus, Tag, Calendar, List } from 'lucide-react'
 
 export default function HabitsPage() {
@@ -21,10 +25,36 @@ export default function HabitsPage() {
   const [editingHabit, setEditingHabit] = useState<any>(null)
   const { habits, fetchHabits, deleteHabit, updateHabit } = useHabitStore()
   const { startTask, fetchTodayTasks } = useTaskStore()
+  const resolvedTheme = useThemeStore((state) => state.resolvedTheme)
+  const isDark = resolvedTheme === 'dark'
+
+  // 週間レビュー関連
+  const {
+    shouldShowWeeklyPopup,
+    openWeeklyPopup,
+  } = useHabitReviewStore()
+
+  // 習慣データをHabitSnapshot形式に変換
+  const habitSnapshots: HabitSnapshot[] = habits.map((habit: any) => ({
+    id: habit.id,
+    name: habit.name,
+    achievement_rate: habit.achievement_rate || 0,
+    streak_current: habit.streak_current || 0,
+    streak_max: habit.streak_max || 0,
+    total_days: habit.total_days || 0,
+    level: habit.level || 1,
+  }))
 
   useEffect(() => {
     fetchHabits()
   }, [fetchHabits])
+
+  // 週間レビューポップアップの表示チェック
+  useEffect(() => {
+    if (habits.length > 0 && shouldShowWeeklyPopup()) {
+      openWeeklyPopup()
+    }
+  }, [habits.length, shouldShowWeeklyPopup, openWeeklyPopup])
 
   // 通知を自動で消す
   useEffect(() => {
@@ -230,16 +260,16 @@ export default function HabitsPage() {
 
   return (
     <MainLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* 通知バナー */}
         {notification && (
           <div
-            className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+            className={`fixed top-4 right-4 z-50 px-6 py-3 rounded-xl shadow-lg transition-all duration-300 animate-fade-in-up ${
               notification.type === 'success'
-                ? 'bg-green-500 text-white'
+                ? 'bg-success-500 text-white'
                 : notification.type === 'error'
-                ? 'bg-red-500 text-white'
-                : 'bg-blue-500 text-white'
+                ? 'bg-danger-500 text-white'
+                : 'bg-primary-500 text-white'
             }`}
           >
             <div className="flex items-center space-x-2">
@@ -251,50 +281,63 @@ export default function HabitsPage() {
           </div>
         )}
 
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" data-tutorial="habits-section">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">習慣管理</h1>
-            <p className="mt-2 text-sm text-gray-700">
+            <h1 className={`text-3xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-surface-900'}`}>習慣管理</h1>
+            <p className={`mt-2 text-sm ${isDark ? 'text-surface-400' : 'text-surface-600'}`}>
               継続したい習慣を登録して、レベルアップしていきましょう
             </p>
           </div>
           <div className="flex space-x-3">
-            {/* 🆕 表示モード切替 */}
-            <div className="flex bg-gray-100 rounded-md p-1">
+            {/* 表示モード切替 */}
+            <div className={`flex rounded-xl p-1 ${isDark ? 'bg-surface-800' : 'bg-surface-100'}`}>
               <button
                 onClick={() => setViewMode('timetable')}
-                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   viewMode === 'timetable'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? isDark
+                      ? 'bg-surface-700 text-white shadow-sm'
+                      : 'bg-white text-surface-900 shadow-sm'
+                    : isDark
+                      ? 'text-surface-400 hover:text-white'
+                      : 'text-surface-600 hover:text-surface-900'
                 }`}
               >
-                <Calendar className="w-4 h-4 inline mr-1" />
+                <Calendar className="w-4 h-4 inline mr-1.5" />
                 時間割
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`px-3 py-1 text-sm font-medium rounded transition-colors ${
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
                   viewMode === 'list'
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
+                    ? isDark
+                      ? 'bg-surface-700 text-white shadow-sm'
+                      : 'bg-white text-surface-900 shadow-sm'
+                    : isDark
+                      ? 'text-surface-400 hover:text-white'
+                      : 'text-surface-600 hover:text-surface-900'
                 }`}
               >
-                <List className="w-4 h-4 inline mr-1" />
+                <List className="w-4 h-4 inline mr-1.5" />
                 一覧
               </button>
             </div>
 
             <button
               onClick={() => setCategoryFormOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`flex items-center space-x-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200 ${
+                isDark
+                  ? 'text-surface-300 bg-surface-800 border border-surface-700 hover:bg-surface-700'
+                  : 'text-surface-700 bg-white border border-surface-200 hover:bg-surface-50'
+              } focus:outline-none focus:ring-2 focus:ring-primary-500`}
             >
               <Tag className="w-4 h-4" />
               <span>カテゴリ追加</span>
             </button>
             <button
               onClick={() => setHabitFormOpen(true)}
-              className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 border border-transparent rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500"
+              data-tutorial="add-habit-button"
+              className="flex items-center space-x-2 px-4 py-2.5 text-sm font-semibold text-white bg-primary-600 rounded-xl hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 transition-all duration-200 btn-hover"
             >
               <Plus className="w-4 h-4" />
               <span>習慣を追加</span>
@@ -331,6 +374,15 @@ export default function HabitsPage() {
             // Additional success handling if needed
           }}
         />
+
+        {/* 週間レビューポップアップ */}
+        <WeeklyReviewPopup
+          habits={habitSnapshots}
+          onOpenSettings={() => router.push('/settings')}
+        />
+
+        {/* レビューモーダル */}
+        <HabitReviewModal />
       </div>
     </MainLayout>
   )
