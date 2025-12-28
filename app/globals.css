@@ -323,7 +323,7 @@
 
 /* ===== ネイチャーテーマ (Lv.15) - 森林・葉・有機的 ===== */
 .nature:not(.dark), .light.nature {
-  --bg-primary: linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 100%);
+  --bg-primary: #F0FDF4;
   --bg-secondary: #FFFFFF;
   --bg-card: rgba(255, 255, 255, 0.9);
   --bg-elevated: #DCFCE7;
@@ -338,6 +338,13 @@
   --nature-leaf: #22C55E;
   --nature-earth: #92400E;
   --nature-sky: #7DD3FC;
+}
+
+/* ネイチャーライトモード：グラデーション背景 */
+.nature:not(.dark) body,
+.light.nature body {
+  background: linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 100%) !important;
+  min-height: 100vh;
 }
 
 .dark.nature {
@@ -394,7 +401,7 @@
 
 /* ===== サンセットテーマ (Lv.20) - 黄昏・グラデーション・温かみ ===== */
 .sunset:not(.dark), .light.sunset {
-  --bg-primary: linear-gradient(180deg, #FFF7ED 0%, #FFEDD5 50%, #FED7AA 100%);
+  --bg-primary: #FFF7ED;
   --bg-secondary: #FFFFFF;
   --bg-card: rgba(255, 255, 255, 0.95);
   --bg-elevated: #FFEDD5;
@@ -409,6 +416,13 @@
   --sunset-orange: #F97316;
   --sunset-pink: #EC4899;
   --sunset-purple: #A855F7;
+}
+
+/* サンセットライトモード：グラデーション背景 */
+.sunset:not(.dark) body,
+.light.sunset body {
+  background: linear-gradient(180deg, #FFF7ED 0%, #FFEDD5 50%, #FED7AA 100%) !important;
+  min-height: 100vh;
 }
 
 .dark.sunset {
@@ -457,7 +471,7 @@
 
 /* ===== オーシャンテーマ (Lv.25) - 深海・波・神秘 ===== */
 .ocean:not(.dark), .light.ocean {
-  --bg-primary: linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%);
+  --bg-primary: #EFF6FF;
   --bg-secondary: #FFFFFF;
   --bg-card: rgba(255, 255, 255, 0.9);
   --bg-elevated: #DBEAFE;
@@ -472,6 +486,13 @@
   --ocean-deep: #1E3A8A;
   --ocean-mid: #3B82F6;
   --ocean-surface: #60A5FA;
+}
+
+/* オーシャンライトモード：グラデーション背景 */
+.ocean:not(.dark) body,
+.light.ocean body {
+  background: linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%) !important;
+  min-height: 100vh;
 }
 
 .dark.ocean {
@@ -536,7 +557,7 @@
 
 /* ===== ロイヤルテーマ (Lv.30) - 王座・金・紫・高貴 ===== */
 .royal:not(.dark), .light.royal {
-  --bg-primary: linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%);
+  --bg-primary: #FFFBEB;
   --bg-secondary: #FFFFFF;
   --bg-card: rgba(255, 255, 255, 0.95);
   --bg-elevated: #FEF3C7;
@@ -551,6 +572,13 @@
   --royal-gold: #FFD700;
   --royal-purple: #7C3AED;
   --royal-crimson: #DC2626;
+}
+
+/* ロイヤルライトモード：グラデーション背景 */
+.royal:not(.dark) body,
+.light.royal body {
+  background: linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%) !important;
+  min-height: 100vh;
 }
 
 .dark.royal {
