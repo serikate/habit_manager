@@ -37,7 +37,7 @@ export const UI_THEMES: UIThemeDefinition[] = [
   {
     id: 'aurora',
     name: 'オーロラ',
-    description: 'ティール・紫・ピンクの幻想的なグラデーション',
+    description: '北極光のような幻想的なグラデーション',
     unlockLevel: 5,
     gradient: 'from-teal-400 via-purple-500 to-pink-500',
     previewColors: {
@@ -49,23 +49,23 @@ export const UI_THEMES: UIThemeDefinition[] = [
   {
     id: 'cyber',
     name: 'サイバー',
-    description: 'ネオンブルー・パープルの近未来的なテーマ',
+    description: 'ネオングリッドが輝く近未来都市',
     unlockLevel: 10,
-    gradient: 'from-cyan-400 via-blue-500 to-purple-600',
+    gradient: 'from-cyan-400 via-fuchsia-500 to-green-400',
     previewColors: {
-      primary: '#22D3EE',
-      secondary: '#3B82F6',
-      accent: '#A855F7'
+      primary: '#00FFFF',
+      secondary: '#FF00FF',
+      accent: '#00FF88'
     }
   },
   {
     id: 'nature',
     name: 'ネイチャー',
-    description: '森と大地を感じる癒しのグリーンテーマ',
+    description: '深い森の静寂と生命の息吹',
     unlockLevel: 15,
     gradient: 'from-emerald-400 via-green-500 to-teal-600',
     previewColors: {
-      primary: '#34D399',
+      primary: '#4ADE80',
       secondary: '#22C55E',
       accent: '#14B8A6'
     }
@@ -73,37 +73,37 @@ export const UI_THEMES: UIThemeDefinition[] = [
   {
     id: 'sunset',
     name: 'サンセット',
-    description: '夕焼けのオレンジ・ピンクの温かみあるテーマ',
+    description: '地平線に沈む太陽の温かな輝き',
     unlockLevel: 20,
-    gradient: 'from-orange-400 via-rose-500 to-pink-600',
+    gradient: 'from-orange-400 via-rose-500 to-purple-500',
     previewColors: {
-      primary: '#FB923C',
-      secondary: '#F43F5E',
-      accent: '#EC4899'
+      primary: '#F97316',
+      secondary: '#EC4899',
+      accent: '#A855F7'
     }
   },
   {
     id: 'ocean',
     name: 'オーシャン',
-    description: '深海の神秘的なブルーグラデーション',
+    description: '深海の神秘と波のアニメーション',
     unlockLevel: 25,
-    gradient: 'from-blue-400 via-indigo-500 to-blue-800',
+    gradient: 'from-blue-400 via-blue-600 to-blue-900',
     previewColors: {
       primary: '#60A5FA',
-      secondary: '#6366F1',
+      secondary: '#3B82F6',
       accent: '#1E40AF'
     }
   },
   {
     id: 'royal',
     name: 'ロイヤル',
-    description: '冒険者の王座、金と紫の高貴なテーマ',
+    description: '黄金と紫の煌めく王者のテーマ',
     unlockLevel: 30,
-    gradient: 'from-amber-400 via-yellow-500 to-purple-600',
+    gradient: 'from-yellow-400 via-amber-500 to-purple-600',
     previewColors: {
-      primary: '#FBBF24',
-      secondary: '#EAB308',
-      accent: '#9333EA'
+      primary: '#FFD700',
+      secondary: '#F59E0B',
+      accent: '#7C3AED'
     }
   }
 ]

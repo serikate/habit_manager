@@ -255,7 +255,7 @@
   pointer-events: none;
 }
 
-/* ===== サイバーテーマ (Lv.10) ===== */
+/* ===== サイバーテーマ (Lv.10) - ネオン・グリッド・未来都市 ===== */
 .cyber:not(.dark), .light.cyber {
   --bg-primary: #F0F9FF;
   --bg-secondary: #FFFFFF;
@@ -269,28 +269,63 @@
   --color-primary-400: #22D3EE;
   --color-primary-500: #06B6D4;
   --color-primary-600: #0891B2;
+  --cyber-neon-1: #00FFFF;
+  --cyber-neon-2: #FF00FF;
+  --cyber-neon-3: #00FF88;
+  --cyber-glow: 0 0 20px rgba(0, 255, 255, 0.3);
 }
 
 .dark.cyber {
-  --bg-primary: #020617;
-  --bg-secondary: #0F172A;
-  --bg-card: #1E293B;
-  --bg-elevated: #334155;
-  --text-primary: #22D3EE;
-  --text-secondary: #06B6D4;
-  --text-tertiary: #0891B2;
-  --border-primary: #164E63;
-  --border-secondary: #155E75;
+  --bg-primary: #030712;
+  --bg-secondary: #0a0f1f;
+  --bg-card: rgba(15, 23, 42, 0.8);
+  --bg-elevated: rgba(30, 41, 59, 0.9);
+  --text-primary: #00FFFF;
+  --text-secondary: #38BDF8;
+  --text-tertiary: #0EA5E9;
+  --border-primary: rgba(0, 255, 255, 0.3);
+  --border-secondary: rgba(0, 255, 255, 0.5);
   --color-primary-400: #22D3EE;
   --color-primary-500: #06B6D4;
   --color-primary-600: #0891B2;
+  --cyber-neon-1: #00FFFF;
+  --cyber-neon-2: #FF00FF;
+  --cyber-neon-3: #00FF88;
+  --cyber-glow: 0 0 30px rgba(0, 255, 255, 0.4);
 }
 
-/* ===== ネイチャーテーマ (Lv.15) ===== */
+/* サイバーテーマ：グリッド背景 */
+.cyber {
+  --theme-gradient: linear-gradient(135deg, #00FFFF 0%, #FF00FF 50%, #00FF88 100%);
+}
+
+.dark.cyber body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.cyber .card, .cyber [class*="rounded"] {
+  box-shadow: var(--cyber-glow);
+}
+
+.dark.cyber button[class*="primary"], .dark.cyber [class*="btn-primary"] {
+  background: linear-gradient(135deg, #00FFFF, #0891B2);
+  box-shadow: 0 0 20px rgba(0, 255, 255, 0.5), inset 0 1px 0 rgba(255,255,255,0.2);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+}
+
+/* ===== ネイチャーテーマ (Lv.15) - 森林・葉・有機的 ===== */
 .nature:not(.dark), .light.nature {
-  --bg-primary: #F0FDF4;
+  --bg-primary: linear-gradient(180deg, #F0FDF4 0%, #DCFCE7 100%);
   --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
+  --bg-card: rgba(255, 255, 255, 0.9);
   --bg-elevated: #DCFCE7;
   --text-primary: #14532D;
   --text-secondary: #166534;
@@ -300,28 +335,68 @@
   --color-primary-400: #34D399;
   --color-primary-500: #22C55E;
   --color-primary-600: #16A34A;
+  --nature-leaf: #22C55E;
+  --nature-earth: #92400E;
+  --nature-sky: #7DD3FC;
 }
 
 .dark.nature {
-  --bg-primary: #052E16;
-  --bg-secondary: #14532D;
-  --bg-card: #166534;
-  --bg-elevated: #15803D;
+  --bg-primary: #021a0d;
+  --bg-secondary: #052E16;
+  --bg-card: rgba(20, 83, 45, 0.7);
+  --bg-elevated: rgba(22, 101, 52, 0.8);
   --text-primary: #86EFAC;
   --text-secondary: #4ADE80;
   --text-tertiary: #22C55E;
-  --border-primary: #166534;
-  --border-secondary: #15803D;
+  --border-primary: rgba(74, 222, 128, 0.3);
+  --border-secondary: rgba(74, 222, 128, 0.5);
   --color-primary-400: #4ADE80;
   --color-primary-500: #22C55E;
   --color-primary-600: #16A34A;
+  --nature-leaf: #4ADE80;
+  --nature-earth: #D97706;
+  --nature-sky: #38BDF8;
 }
 
-/* ===== サンセットテーマ (Lv.20) ===== */
+.nature {
+  --theme-gradient: linear-gradient(135deg, #22C55E 0%, #14B8A6 50%, #0D9488 100%);
+}
+
+/* ネイチャーテーマ：葉っぱ模様の装飾 */
+.dark.nature body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(ellipse at top right, rgba(74, 222, 128, 0.15) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark.nature body::after {
+  content: '';
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(ellipse at bottom left, rgba(20, 184, 166, 0.1) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.nature .card {
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(74, 222, 128, 0.2);
+}
+
+/* ===== サンセットテーマ (Lv.20) - 黄昏・グラデーション・温かみ ===== */
 .sunset:not(.dark), .light.sunset {
-  --bg-primary: #FFF7ED;
+  --bg-primary: linear-gradient(180deg, #FFF7ED 0%, #FFEDD5 50%, #FED7AA 100%);
   --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
+  --bg-card: rgba(255, 255, 255, 0.95);
   --bg-elevated: #FFEDD5;
   --text-primary: #7C2D12;
   --text-secondary: #C2410C;
@@ -331,28 +406,60 @@
   --color-primary-400: #FB923C;
   --color-primary-500: #F97316;
   --color-primary-600: #EA580C;
+  --sunset-orange: #F97316;
+  --sunset-pink: #EC4899;
+  --sunset-purple: #A855F7;
 }
 
 .dark.sunset {
-  --bg-primary: #1C0A00;
-  --bg-secondary: #431407;
-  --bg-card: #7C2D12;
-  --bg-elevated: #9A3412;
+  --bg-primary: #0f0603;
+  --bg-secondary: #1C0A00;
+  --bg-card: rgba(124, 45, 18, 0.6);
+  --bg-elevated: rgba(154, 52, 18, 0.7);
   --text-primary: #FDBA74;
   --text-secondary: #FB923C;
   --text-tertiary: #F97316;
-  --border-primary: #7C2D12;
-  --border-secondary: #9A3412;
+  --border-primary: rgba(251, 146, 60, 0.3);
+  --border-secondary: rgba(251, 146, 60, 0.5);
   --color-primary-400: #FB923C;
   --color-primary-500: #F97316;
   --color-primary-600: #EA580C;
+  --sunset-orange: #FB923C;
+  --sunset-pink: #F472B6;
+  --sunset-purple: #C084FC;
 }
 
-/* ===== オーシャンテーマ (Lv.25) ===== */
+.sunset {
+  --theme-gradient: linear-gradient(135deg, #F97316 0%, #EC4899 50%, #A855F7 100%);
+}
+
+/* サンセットテーマ：グラデーション背景 */
+.dark.sunset body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top, rgba(249, 115, 22, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom left, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.sunset .card {
+  background: linear-gradient(135deg, var(--bg-card) 0%, rgba(251, 146, 60, 0.05) 100%);
+}
+
+.dark.sunset button[class*="primary"] {
+  background: linear-gradient(135deg, #F97316, #EC4899);
+  box-shadow: 0 4px 20px rgba(249, 115, 22, 0.4);
+}
+
+/* ===== オーシャンテーマ (Lv.25) - 深海・波・神秘 ===== */
 .ocean:not(.dark), .light.ocean {
-  --bg-primary: #EFF6FF;
+  --bg-primary: linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%);
   --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
+  --bg-card: rgba(255, 255, 255, 0.9);
   --bg-elevated: #DBEAFE;
   --text-primary: #1E3A8A;
   --text-secondary: #1D4ED8;
@@ -362,28 +469,76 @@
   --color-primary-400: #60A5FA;
   --color-primary-500: #3B82F6;
   --color-primary-600: #2563EB;
+  --ocean-deep: #1E3A8A;
+  --ocean-mid: #3B82F6;
+  --ocean-surface: #60A5FA;
 }
 
 .dark.ocean {
-  --bg-primary: #020420;
-  --bg-secondary: #0F1729;
-  --bg-card: #1E293B;
-  --bg-elevated: #1E3A5F;
+  --bg-primary: #010409;
+  --bg-secondary: #020617;
+  --bg-card: rgba(30, 58, 138, 0.4);
+  --bg-elevated: rgba(29, 78, 216, 0.3);
   --text-primary: #93C5FD;
   --text-secondary: #60A5FA;
   --text-tertiary: #3B82F6;
-  --border-primary: #1E3A8A;
-  --border-secondary: #1D4ED8;
+  --border-primary: rgba(59, 130, 246, 0.3);
+  --border-secondary: rgba(59, 130, 246, 0.5);
   --color-primary-400: #60A5FA;
   --color-primary-500: #3B82F6;
   --color-primary-600: #2563EB;
+  --ocean-deep: #1E3A8A;
+  --ocean-mid: #3B82F6;
+  --ocean-surface: #60A5FA;
 }
 
-/* ===== ロイヤルテーマ (Lv.30) ===== */
+.ocean {
+  --theme-gradient: linear-gradient(135deg, #60A5FA 0%, #3B82F6 50%, #1E40AF 100%);
+}
+
+/* オーシャンテーマ：波のアニメーション背景 */
+@keyframes ocean-wave {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(1deg); }
+}
+
+.dark.ocean body::before {
+  content: '';
+  position: fixed;
+  bottom: -50%;
+  left: -10%;
+  width: 120%;
+  height: 100%;
+  background:
+    radial-gradient(ellipse at center, rgba(59, 130, 246, 0.1) 0%, transparent 60%);
+  animation: ocean-wave 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.dark.ocean body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 200px;
+  background: linear-gradient(180deg, rgba(30, 64, 175, 0.2) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.ocean .card {
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  box-shadow: 0 8px 32px rgba(30, 64, 175, 0.15);
+}
+
+/* ===== ロイヤルテーマ (Lv.30) - 王座・金・紫・高貴 ===== */
 .royal:not(.dark), .light.royal {
-  --bg-primary: #FFFBEB;
+  --bg-primary: linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 100%);
   --bg-secondary: #FFFFFF;
-  --bg-card: #FFFFFF;
+  --bg-card: rgba(255, 255, 255, 0.95);
   --bg-elevated: #FEF3C7;
   --text-primary: #78350F;
   --text-secondary: #B45309;
@@ -393,22 +548,95 @@
   --color-primary-400: #FBBF24;
   --color-primary-500: #F59E0B;
   --color-primary-600: #D97706;
+  --royal-gold: #FFD700;
+  --royal-purple: #7C3AED;
+  --royal-crimson: #DC2626;
 }
 
 .dark.royal {
-  --bg-primary: #1A0F2E;
-  --bg-secondary: #2D1B4E;
-  --bg-card: #3D2573;
-  --bg-elevated: #4C1D95;
-  --text-primary: #FCD34D;
+  --bg-primary: #0d0618;
+  --bg-secondary: #1A0F2E;
+  --bg-card: rgba(61, 37, 115, 0.6);
+  --bg-elevated: rgba(76, 29, 149, 0.5);
+  --text-primary: #FFD700;
   --text-secondary: #FBBF24;
   --text-tertiary: #F59E0B;
-  --border-primary: #4C1D95;
-  --border-secondary: #5B21B6;
+  --border-primary: rgba(255, 215, 0, 0.3);
+  --border-secondary: rgba(255, 215, 0, 0.5);
   --color-primary-400: #FBBF24;
   --color-primary-500: #F59E0B;
   --color-primary-600: #D97706;
+  --royal-gold: #FFD700;
+  --royal-purple: #A78BFA;
+  --royal-crimson: #F87171;
 }
+
+.royal {
+  --theme-gradient: linear-gradient(135deg, #FFD700 0%, #F59E0B 30%, #7C3AED 70%, #4C1D95 100%);
+}
+
+/* ロイヤルテーマ：豪華な装飾 */
+.dark.royal body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at top center, rgba(255, 215, 0, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at bottom left, rgba(124, 58, 237, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at bottom right, rgba(124, 58, 237, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* ロイヤルテーマ：金のシマー効果 */
+@keyframes royal-shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.royal .card {
+  position: relative;
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.1);
+}
+
+.dark.royal .card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.5), transparent);
+  background-size: 200% 100%;
+  animation: royal-shimmer 3s linear infinite;
+}
+
+.dark.royal button[class*="primary"] {
+  background: linear-gradient(135deg, #FFD700, #F59E0B, #D97706);
+  box-shadow: 0 4px 20px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.3);
+  color: #1A0F2E;
+  font-weight: 600;
+}
+
+/* ===== 全テーマ共通：グラデーションテキスト ===== */
+.cyber .gradient-text,
+.nature .gradient-text,
+.sunset .gradient-text,
+.ocean .gradient-text,
+.royal .gradient-text {
+  background: var(--theme-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== 全テーマ共通：プログレスバー ===== */
+.cyber .progress-bar-fill { background: linear-gradient(90deg, #00FFFF, #FF00FF); }
+.nature .progress-bar-fill { background: linear-gradient(90deg, #22C55E, #14B8A6); }
+.sunset .progress-bar-fill { background: linear-gradient(90deg, #F97316, #EC4899); }
+.ocean .progress-bar-fill { background: linear-gradient(90deg, #60A5FA, #1E40AF); }
+.royal .progress-bar-fill { background: linear-gradient(90deg, #FFD700, #7C3AED); }
 
 /* ===== フォント設定 ===== */
 html, body {
