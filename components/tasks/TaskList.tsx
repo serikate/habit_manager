@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useTaskStore } from '@/stores/taskStore'
 import type { DailyTask, OneTimeTask } from '@/types'
-import { Clock, AlertCircle, Edit2 } from 'lucide-react'
+import { Clock, AlertCircle, Edit2, Trash2 } from 'lucide-react'
 import { format, parseISO, isBefore, startOfDay } from 'date-fns'
 import {
   getTaskScheduledTime,
@@ -18,7 +18,16 @@ interface TaskListProps {
 }
 
 export default function TaskList({ showTitle = true }: TaskListProps) {
-  const { todayTasks, oneTimeTasks, startTask, completeTask, uncompleteTask } = useTaskStore()
+  const {
+    todayTasks,
+    oneTimeTasks,
+    startTask,
+    completeTask,
+    uncompleteTask,
+    startOneTimeTask,
+    completeOneTimeTask,
+    deleteOneTimeTask
+  } = useTaskStore()
   const [editingExecution, setEditingExecution] = useState<{
     execution: any
     task: DailyTask
@@ -188,7 +197,7 @@ export default function TaskList({ showTitle = true }: TaskListProps) {
                 <div className="flex space-x-2">
                   {task.status === 'pending' && (
                     <button
-                      onClick={() => startTask(task.id)}
+                      onClick={() => task.taskType === 'habit' ? startTask(task.id) : startOneTimeTask(task.id)}
                       className="px-3 py-1 text-sm font-medium text-primary-700 bg-primary-50 rounded-md hover:bg-primary-100"
                     >
                       開始
@@ -196,10 +205,20 @@ export default function TaskList({ showTitle = true }: TaskListProps) {
                   )}
                   {task.status === 'in_progress' && (
                     <button
-                      onClick={() => completeTask(task.id)}
+                      onClick={() => task.taskType === 'habit' ? completeTask(task.id) : completeOneTimeTask(task.id)}
                       className="px-3 py-1 text-sm font-medium text-green-700 bg-green-50 rounded-md hover:bg-green-100"
                     >
                       完了
+                    </button>
+                  )}
+                  {/* 単発タスクの削除ボタン */}
+                  {task.taskType === 'oneTime' && (
+                    <button
+                      onClick={() => deleteOneTimeTask(task.id)}
+                      className="px-3 py-1 text-sm font-medium text-red-700 bg-red-50 rounded-md hover:bg-red-100 flex items-center space-x-1"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>削除</span>
                     </button>
                   )}
                 </div>

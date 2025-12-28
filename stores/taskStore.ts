@@ -38,6 +38,8 @@ interface TaskState {
   createOneTimeTask: (data: CreateOneTimeTaskData) => Promise<OneTimeTask | null>
   updateOneTimeTask: (id: string, updates: Partial<OneTimeTask>) => Promise<boolean>
   deleteOneTimeTask: (id: string) => Promise<boolean>
+  startOneTimeTask: (id: string) => Promise<boolean>
+  completeOneTimeTask: (id: string) => Promise<boolean>
 }
 
 export const useTaskStore = create<TaskState>((set, get) => ({
@@ -537,6 +539,56 @@ export const useTaskStore = create<TaskState>((set, get) => ({
       const { error } = await supabase
         .from('one_time_tasks')
         .update({ is_active: false })
+        .eq('id', id)
+
+      if (error) throw error
+
+      set(state => ({
+        oneTimeTasks: state.oneTimeTasks.filter(task => task.id !== id),
+        loading: false
+      }))
+
+      return true
+    } catch (error: any) {
+      set({ error: error.message, loading: false })
+      return false
+    }
+  },
+
+  startOneTimeTask: async (id: string) => {
+    const supabase = createClient()
+    set({ loading: true, error: null })
+
+    try {
+      const { error } = await supabase
+        .from('one_time_tasks')
+        .update({ status: 'in_progress' })
+        .eq('id', id)
+
+      if (error) throw error
+
+      set(state => ({
+        oneTimeTasks: state.oneTimeTasks.map(task =>
+          task.id === id ? { ...task, status: 'in_progress' as const } : task
+        ),
+        loading: false
+      }))
+
+      return true
+    } catch (error: any) {
+      set({ error: error.message, loading: false })
+      return false
+    }
+  },
+
+  completeOneTimeTask: async (id: string) => {
+    const supabase = createClient()
+    set({ loading: true, error: null })
+
+    try {
+      const { error } = await supabase
+        .from('one_time_tasks')
+        .update({ status: 'completed' })
         .eq('id', id)
 
       if (error) throw error
