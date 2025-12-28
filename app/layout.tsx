@@ -4,6 +4,7 @@ import './globals.css'
 import { ThemeProvider } from '@/components/providers/ThemeProvider'
 import { HabitCompletionProvider } from '@/components/providers/HabitCompletionProvider'
 import { LevelUpProvider } from '@/components/providers/LevelUpProvider'
+import { ThemeUnlockPopup } from '@/components/theme/ThemeUnlockPopup'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,6 +29,7 @@ export default function RootLayout({
           <HabitCompletionProvider>
             <LevelUpProvider>
               {children}
+              <ThemeUnlockPopup />
             </LevelUpProvider>
           </HabitCompletionProvider>
         </ThemeProvider>

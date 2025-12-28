@@ -5,10 +5,11 @@ export type TitleMode = 'business' | 'light'
 // レベル別テーマ解放マッピング
 export const LEVEL_THEME_UNLOCKS: Record<number, UITheme> = {
   5: 'aurora',
-  // 将来の拡張用
-  // 10: 'cyber',
-  // 15: 'sakura',
-  // 20: 'galaxy',
+  10: 'cyber',
+  15: 'nature',
+  20: 'sunset',
+  25: 'ocean',
+  30: 'royal',
 }
 
 /**

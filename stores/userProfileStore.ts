@@ -75,6 +75,12 @@ export const useUserProfileStore = create<UserProfileState>((set, get) => ({
       }
 
       set({ profile: data, loading: false })
+
+      // 現在のレベルに基づいてテーマを解放
+      const currentLevel = getLevelInfo(data.total_experience_points).level
+      import('@/stores/themeStore').then(({ useThemeStore }) => {
+        useThemeStore.getState().unlockThemesForLevel(currentLevel)
+      })
     } catch (error: any) {
       console.error('プロファイル取得エラー:', error)
       set({ error: error.message, loading: false })
