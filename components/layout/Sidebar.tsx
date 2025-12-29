@@ -15,8 +15,9 @@ import {
   Flag,
   Sparkles
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useThemeStore } from '@/stores/themeStore'
+import { tutorialEvents, type TutorialEventType } from '@/lib/tutorialEvents'
 
 const navigation = [
   { name: 'ダッシュボード', href: '/dashboard', icon: Home, tutorialId: 'sidebar-dashboard' },
@@ -34,6 +35,19 @@ export default function Sidebar() {
   const sidebarTheme = useThemeStore((state) => state.sidebarTheme)
 
   const isDark = sidebarTheme === 'dark'
+
+  // チュートリアルイベントをリッスンしてサイドバーを開閉
+  useEffect(() => {
+    const unsubscribe = tutorialEvents.subscribe((eventType: TutorialEventType) => {
+      if (eventType === 'open-sidebar') {
+        setSidebarOpen(true)
+      } else if (eventType === 'close-sidebar') {
+        setSidebarOpen(false)
+      }
+    })
+
+    return () => unsubscribe()
+  }, [])
 
   // テーマに応じたスタイル
   const containerStyles = isDark

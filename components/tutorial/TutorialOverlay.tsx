@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import { useTutorialStore } from '@/stores/tutorialStore'
 import { TutorialTooltip } from './TutorialTooltip'
+import { tutorialEvents, isSidebarTarget, isMobileScreen } from '@/lib/tutorialEvents'
 
 export interface HighlightRect {
   top: number
@@ -113,6 +114,14 @@ export function TutorialOverlay() {
     }
   }, [currentStep?.target, currentStep?.waitForAction])
 
+  // モバイルでサイドバー項目をターゲットにする場合、サイドバーを開く
+  useEffect(() => {
+    if (isActive && currentStep?.target && isSidebarTarget(currentStep.target) && isMobileScreen()) {
+      // サイドバーを開くイベントを発火
+      tutorialEvents.emit('open-sidebar')
+    }
+  }, [isActive, currentStep?.target])
+
   useEffect(() => {
     if (isActive && currentStep) {
       // 少し遅延させて要素が表示されてから計算
@@ -125,12 +134,18 @@ export function TutorialOverlay() {
         updateHighlightRect()
       }, 300)
 
+      // モバイルでサイドバーが開いた後の再計算
+      const timer3 = setTimeout(() => {
+        updateHighlightRect()
+      }, 500)
+
       // リサイズに対応（スクロールはロックされているため不要）
       window.addEventListener('resize', updateHighlightRect)
 
       return () => {
         clearTimeout(timer1)
         clearTimeout(timer2)
+        clearTimeout(timer3)
         window.removeEventListener('resize', updateHighlightRect)
       }
     }
